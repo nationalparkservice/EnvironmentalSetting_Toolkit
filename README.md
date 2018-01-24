@@ -1,8 +1,7 @@
 # EnvironmentalSetting_Toolkit
 Tools supporting the NPS IMD Environmental Setting protocol. 
 
-
-Draft Timeline:
+Draft Timeline
 	Version 1.0 - February 2018
 		Bug fixes
 		Parameter date range availability
