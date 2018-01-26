@@ -502,6 +502,36 @@ getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
   return(bbox)
 }
 
+#' getUSHCN retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values ().  
+#' @param responseList list of response array of requested station codes (sid)
+#' @export
+#'
+getUSHCN <- function (responseList) {
+  # Last updated 20121009 and URL may change in March 2018
+  # Reference: https://doi.org/10.1175/JTECH-D-11-00103.1
+  hcnURL <- "ftp://ftp.ncdc.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt"
+  config <- add_headers(Accept = "'Accept':'application/text'")
+  # Initialize data frame objects
+  df <- NULL
+  dfResponse <- NULL
+  hcnColNames <- c("uid","latitude","longitude","elevation","statecode", "name","num1","num2","num3","unkCol")
+  # Initialize vector for HCN 'flag'
+  hcnFlags = NULL
+  
+  # Read txt file - using local copy because '#' character in URL file breaks read.fwf()
+  hcnStations0 <- read.fwf(file="inst/ushcn-v2.5-stations2.txt", c(13,9,9,7,3,31,7,7,7,2),header=FALSE)  #hcnStations0 <- content(GET(hcnURL))
+  #hcnStations0 <- read.fwf(file=url(hcnURL), c(13,9,9,7,3,31,7,7,7,2),header=FALSE)
+  hcnStations <- as.data.frame(hcnStations0)
+  setNames(hcnStations,hcnColNames)
+  browser()
+  hcnStations
+  # Compare station sids to HCN ids and update vector indicating matches
+  #Column 6 (name) has |in place of # so need to replace then do a name 
+  # match check with the name column of responseList; hits have hcnFlag = Y
+  
+}
+
+
 #' outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
 #' @param gridResponse grid (dataframe format) returned from ACIS request (by date)
 #' @param filePath full file path for ASCII output

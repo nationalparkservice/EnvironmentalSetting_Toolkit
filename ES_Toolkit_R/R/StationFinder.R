@@ -1,15 +1,19 @@
 #' Find stations near a park
 #' 
-#' Takes one park organizational code and one or more climate parameters, determines the stations near the specified park using a bounding box from the IRMA Unit Service (\url{http://irmaservices.nps.gov/v2/rest/unit/CODE/geography?detail=envelope&dataformat=wkt&format=json}). 
+#' Uses NOAA Regional Climate Centers' Applied Climate Information System (ACIS) web services \url{http://www.rcc-acis.org/docs_webservices.html}. ACIS overview: \url{http://www.rcc-acis.org/index.html}  ACIS journal reference: \url{https://doi.org/10.1175/BAMS-D-13-00032.1} 
+#'
+#'
+#' Takes one park organizational code and one or more climate parameters, determines the stations near the specified park using a bounding box from the IRMA Unit Service (\url{http://irmaservices.nps.gov/v2/rest/unit/CODE/geography?detail=envelope&dataformat=wkt&format=json}) or from a supplied custom bounding box parameter. 
 #' If distance parameter is specified, bounding box will be buffered by that distance. If no distance is provided, park bounding box is used. 
-#' Station location must intersect park bounding box (unbuffered or buffered).
+#' Station location must intersect the bounding box (either unbuffered or buffered).
 #' Returns station information as a data frame with the following items: name, longitude, latitude, station IDs (sids), state code, elevation (feet), and unique station ID
 # @param sourceURL sourceURL for ACIS data services
 #' @param unitCode One NPS unit code as a string
 #' @param distance (optional) Distance (in kilometers) to buffer park bounding box
 #' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
-#' @return A data frame containing station information for stations near the specified park/refuge. See User Guide for more details:  \url{https://docs.google.com/document/d/1B0rf0VTEXQNWGW9fqg2LRr6cHR20VQhFRy7PU_BfOeA/}
+#' @param customBBox (optional) String containing bounding box geographic coordinates (longitude,latitude) using the WGS84 datum in the following format: Lower Left Longitude, Lower Left Latitude, Upper Right Longitude, Upper Right Latitude. Note: longitude is negative in the western hemisphere. Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"
+#' @return A data frame containing station information for stations near the specified park. See User Guide for more details:  \url{}
 #' @examples \dontrun{
 #' Find stations collecting average temperature within 10km of Marsh-Billings NHP:
 #' 
@@ -153,6 +157,8 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
       }
       minDate <-  setNames(as.data.frame(minDate), "minDate")
       maxDate <-  setNames(as.data.frame(maxDate), "maxDate")
+      # Detect U.S. Historical Climate Network stations
+      hcn <- getUSHCN(sid1)
       # Force elevation to be numeric with precision of 1
       options(digits = 1)
       if (!is.null(stationListInit$meta$elev)) {

@@ -4,7 +4,7 @@
 \alias{getBBox}
 \title{getBBox retrieves bounding box from IRMA/ServCat Unit service and buffers it by specified distance}
 \usage{
-getBBox(unitCode, expandBBox)
+getBBox(unitCode, expandBBox, bboxCustom = NULL)
 }
 \arguments{
 \item{unitCode}{unitCode One NPS or FWS unit code as a string}

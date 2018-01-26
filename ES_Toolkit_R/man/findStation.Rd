@@ -5,7 +5,7 @@
 \title{Find stations near a park}
 \usage{
 findStation(unitCode, distance = NULL, climateParameters = NULL,
-  filePathAndName = NULL)
+  filePathAndName = NULL, customBBox = NULL)
 }
 \arguments{
 \item{unitCode}{One NPS unit code as a string}
@@ -15,14 +15,19 @@ findStation(unitCode, distance = NULL, climateParameters = NULL,
 \item{climateParameters}{A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
 
 \item{filePathAndName}{(optional) File path and name including extension for output CSV file}
+
+\item{customBBox}{(optional) String containing bounding box geographic coordinates (longitude,latitude) using the WGS84 datum in the following format: Lower Left Longitude, Lower Left Latitude, Upper Right Longitude, Upper Right Latitude. Note: longitude is negative in the western hemisphere. Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"}
 }
 \value{
-A data frame containing station information for stations near the specified park/refuge. See User Guide for more details:  \url{https://docs.google.com/document/d/1B0rf0VTEXQNWGW9fqg2LRr6cHR20VQhFRy7PU_BfOeA/}
+A data frame containing station information for stations near the specified park. See User Guide for more details:  \url{}
 }
 \description{
-Takes one park or refuge organizational code and one or more climate parameters, determines the stations near the specified park/refuge using a bounding box from the IRMA Unit Service (\url{http://irmaservices.nps.gov/v2/rest/unit/CODE/geography?detail=envelope&dataformat=wkt&format=json}). 
+Uses NOAA Regional Climate Centers' Applied Climate Information System (ACIS) web services \url{http://www.rcc-acis.org/docs_webservices.html}. ACIS overview: \url{http://www.rcc-acis.org/index.html}  ACIS journal reference: \url{https://doi.org/10.1175/BAMS-D-13-00032.1}
+}
+\details{
+Takes one park organizational code and one or more climate parameters, determines the stations near the specified park using a bounding box from the IRMA Unit Service (\url{http://irmaservices.nps.gov/v2/rest/unit/CODE/geography?detail=envelope&dataformat=wkt&format=json}) or from a supplied custom bounding box parameter. 
 If distance parameter is specified, bounding box will be buffered by that distance. If no distance is provided, park bounding box is used. 
-Station location must intersect park bounding box (unbuffered or buffered).
+Station location must intersect the bounding box (either unbuffered or buffered).
 Returns station information as a data frame with the following items: name, longitude, latitude, station IDs (sids), state code, elevation (feet), and unique station ID
 }
 \examples{
@@ -42,6 +47,8 @@ findStation(unitCode = "AGFO", distance=10, climateParameters=list('pcpn'), file
 Find stations within 30km of Rocky Mountain NP collecting maxt and mint:
 
 findStation(unitCode = "ROMO", distance=30, climateParameters=list('pcpn'), filePathAndName = "Test01_R.csv")
+
+Find stations within 50km of Alamosa NWR that collect precipitation data 
 }
 }
 

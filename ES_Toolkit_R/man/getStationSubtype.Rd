@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilityFunctions.R
 \name{getStationSubtype}
 \alias{getStationSubtype}
-\title{Utility functions for IMClimateR}
+\title{Utility functions for EnvironmentalSetting_Toolkit}
 \usage{
 getStationSubtype(testType, testSid)
 }

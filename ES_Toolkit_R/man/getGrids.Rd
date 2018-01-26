@@ -2,7 +2,7 @@
 % Please edit documentation in R/GridRequestor.R
 \name{getGrids}
 \alias{getGrids}
-\title{Get climate data grids for specified parameter(s) and NPS or FWS unit(s)}
+\title{Get climate data grids for specified parameter(s) and NPS unit(s)}
 \usage{
 getGrids(unitCode = NULL, sdate = NULL, edate = NULL, distance = NULL,
   climateParameters = NULL, duration = "dly", filePath = NULL)
