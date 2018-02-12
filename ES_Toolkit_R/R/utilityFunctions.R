@@ -449,9 +449,10 @@ stripEscapesGrid <- function(inputStr) {
   return(outputJSON)
 }
 
-#' getBBox retrieves bounding box from IRMA/ServCat Unit service and buffers it by specified distance
+#' getBBox retrieves bounding box from IRMA Unit service and buffers it by specified distance
+#' 
 #' @param unitCode unitCode One NPS or FWS unit code as a string
-#' @param bboxExpand buffer distance in decimal degrees (assumes WGS984)
+#' @param bboxExpand buffer distance in decimal degrees (assumes WGS84)
 #' @export
 #'
 getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
@@ -502,33 +503,39 @@ getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
   return(bbox)
 }
 
-#' getUSHCN retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values ().  
+#' getUSHCN retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
+#' 
 #' @param responseList list of response array of requested station codes (sid)
 #' @export
 #'
 getUSHCN <- function (responseList) {
   # Last updated 20121009 and URL may change in March 2018
   # Reference: https://doi.org/10.1175/JTECH-D-11-00103.1
-  hcnURL <- "ftp://ftp.ncdc.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt"
+  # Hard-coded (local) file used because of issues reading directly from online files
+  # Re-factor to save to local file, remove # characters, and then read in with read.fwf()
+  #hcnURL <- "http://cdiac.ess-dive.lbl.gov/ftp/ushcn_daily/ushcn-stations.txt"
+  #hcnURL <- "ftp://ftp.ncdc.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt"
   config <- add_headers(Accept = "'Accept':'application/text'")
   # Initialize data frame objects
   df <- NULL
   dfResponse <- NULL
-  hcnColNames <- c("uid","latitude","longitude","elevation","statecode", "name","num1","num2","num3","unkCol")
+  hcnColNames <- c("coopid","latitude","longitude","elevation","statecode", "name","component1","component2","component3","UTCoffset")
   # Initialize vector for HCN 'flag'
-  hcnFlags = NULL
+  hcnFlags0 <- rep("N", nrow(responseList))
   
-  # Read txt file - using local copy because '#' character in URL file breaks read.fwf()
+  # Read txt file - using local copy because '#' character in URL file breaks both read.fwf() and read.table()
   hcnStations0 <- read.fwf(file="inst/ushcn-v2.5-stations2.txt", c(13,9,9,7,3,31,7,7,7,2),header=FALSE)  #hcnStations0 <- content(GET(hcnURL))
+  #hcnStations0 <- read.fwf(file=url(hcnURL), c(8,9,9,7,3,31,7,7,7,2),header=FALSE)
   #hcnStations0 <- read.fwf(file=url(hcnURL), c(13,9,9,7,3,31,7,7,7,2),header=FALSE)
   hcnStations <- as.data.frame(hcnStations0)
   setNames(hcnStations,hcnColNames)
-  browser()
-  hcnStations
   # Compare station sids to HCN ids and update vector indicating matches
+  hcnMatches <- substr(responseList$sid1,1,6) %in% trimws(substr(hcnStations$V1,6,11), "both")
   #Column 6 (name) has |in place of # so need to replace then do a name 
   # match check with the name column of responseList; hits have hcnFlag = Y
-  
+  hcnFlags <- replace(hcnFlags0, hcnMatches=="TRUE", "Y")
+  #browser()
+  return(hcnFlags)
 }
 
 

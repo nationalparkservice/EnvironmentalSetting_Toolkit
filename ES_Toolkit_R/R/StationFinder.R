@@ -110,6 +110,7 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
       sid3_type = c(as.character(NA))
       minDate = c(as.Date(NA))
       maxDate = c(as.Date(NA))
+      hcn = c()
       for (i in 1:length(stationListInit$meta$sids)) {
         if (length(unlist(stationListInit$meta$sids[i])) >= 3) {
           sid1[i] <- as.character(as.vector(lapply(stationListInit$meta$sids[i], function(x) unlist(x[1]))))
@@ -157,8 +158,10 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
       }
       minDate <-  setNames(as.data.frame(minDate), "minDate")
       maxDate <-  setNames(as.data.frame(maxDate), "maxDate")
-      # Detect U.S. Historical Climate Network stations
-      hcn <- getUSHCN(sid1)
+      # Detect U.S. Historical Climate Network stations using the first station identifier
+      hcn0 <- getUSHCN(sid1)
+      hcn <- setNames(as.data.frame(hcn0), "isHCNStation")
+      browser()
       # Force elevation to be numeric with precision of 1
       options(digits = 1)
       if (!is.null(stationListInit$meta$elev)) {
@@ -169,13 +172,13 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
       }
       options(digits = 7)
       if (is.null(stationList)) {
-        stationList <- cbind( uid, name=stationListInit$meta$name, longitude, latitude, sid1, sid1_type, sid2, sid2_type, sid3, sid3_type, state=stationListInit$meta$state, elev=elev, minDate, maxDate)
+        stationList <- cbind( uid, name=stationListInit$meta$name, longitude, latitude, sid1, sid1_type, sid2, sid2_type, sid3, sid3_type, state=stationListInit$meta$state, elev=elev, isHCNStation=hcn, minDate, maxDate)
         #stationList <- cbind( uid, name=stationListInit$meta[,1], longitude, latitude, sid1, sid1_type, sid2, sid2_type, sid3, sid3_type, state=stationListInit$meta[,4], elev=stationListInit$meta[,5], minDate, maxDate)
         stationList$climateParameter <- unlist(climateParameters[p])
         stationList$unitCode <- unitCode[1]
       }
       else {
-        stationListTemp <- cbind( uid, name=stationListInit$meta$name, longitude, latitude, sid1, sid1_type, sid2, sid2_type, sid3, sid3_type, state=stationListInit$meta$state, elev=elev, minDate, maxDate)
+        stationListTemp <- cbind( uid, name=stationListInit$meta$name, longitude, latitude, sid1, sid1_type, sid2, sid2_type, sid3, sid3_type, state=stationListInit$meta$state, elev=elev, isHCNStation=hcn, minDate, maxDate)
         #stationListTemp <- cbind( uid, name=stationListInit$meta[,1], longitude, latitude, sid1, sid1_type, sid2, sid2_type, sid3, sid3_type, state=stationListInit$meta[,4], elev=stationListInit$meta[,5], minDate, maxDate)
         stationListTemp$climateParameter <- unlist(climateParameters[p])
         stationListTemp$unitCode <- unitCode[1]

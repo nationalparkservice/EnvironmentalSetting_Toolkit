@@ -2,16 +2,16 @@
 % Please edit documentation in R/utilityFunctions.R
 \name{getBBox}
 \alias{getBBox}
-\title{getBBox retrieves bounding box from IRMA/ServCat Unit service and buffers it by specified distance}
+\title{getBBox retrieves bounding box from IRMA Unit service and buffers it by specified distance}
 \usage{
 getBBox(unitCode, expandBBox, bboxCustom = NULL)
 }
 \arguments{
 \item{unitCode}{unitCode One NPS or FWS unit code as a string}
 
-\item{bboxExpand}{buffer distance in decimal degrees (assumes WGS984)}
+\item{bboxExpand}{buffer distance in decimal degrees (assumes WGS84)}
 }
 \description{
-getBBox retrieves bounding box from IRMA/ServCat Unit service and buffers it by specified distance
+getBBox retrieves bounding box from IRMA Unit service and buffers it by specified distance
 }
 
