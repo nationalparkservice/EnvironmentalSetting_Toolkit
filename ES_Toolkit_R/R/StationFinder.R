@@ -56,7 +56,7 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
   baseURL <- "http://data.rcc-acis.org/"
   webServiceSource <- "StnMeta"
   lookups <- 
-    fromJSON(system.file("ACISLookups.json", package = "IMClimateR"), flatten = TRUE) # assumes placement in package inst subfolder
+    fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit"), flatten = TRUE) # assumes placement in package inst subfolder
   
   stationMetadata = c('uid', 'name', 'state', 'll', 'elev', 'valid_daterange', 'sids')
   #stationMetadata <-c('uid', 'name', 'state', 'll', 'elev', 'valid_daterange', 'sids')

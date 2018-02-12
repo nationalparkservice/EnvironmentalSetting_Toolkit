@@ -75,7 +75,7 @@ getGrids <-
     
     # Image parameters from lookup file - used for output formatting and  request documentation
     lookups <- 
-      fromJSON(system.file("ACISLookups.json", package = "IMClimateR"), flatten = TRUE) # assumes placement in package inst subfolder
+      fromJSON(system.file("ACISLookups.json", package = "EnviromentalSettingToolkit"), flatten = TRUE) # assumes placement in package inst subfolder
     luElements  <- lookups$gridSources[gridElements$gridSource]
     
     
