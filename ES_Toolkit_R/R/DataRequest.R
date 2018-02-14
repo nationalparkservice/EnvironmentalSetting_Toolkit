@@ -67,7 +67,7 @@ getWxObservations <-
     metaElements <-
       list('uid', 'll', 'name', 'elev', 'sids', 'state')
     lookups <-
-      fromJSON(system.file("ACISLookups.json", package = "IMClimateR"),
+      fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit"),
                flatten = TRUE) # assumes placement in package inst subfolder
     luElements  <- lookups$element
     

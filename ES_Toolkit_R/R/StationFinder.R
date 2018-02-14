@@ -161,7 +161,6 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
       # Detect U.S. Historical Climate Network stations using the first station identifier
       hcn0 <- getUSHCN(sid1)
       hcn <- setNames(as.data.frame(hcn0), "isHCNStation")
-      browser()
       # Force elevation to be numeric with precision of 1
       options(digits = 1)
       if (!is.null(stationListInit$meta$elev)) {
