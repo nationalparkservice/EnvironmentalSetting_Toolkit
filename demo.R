@@ -1,17 +1,24 @@
-library(IMClimateR)
+library(EnvironmentalSettingToolkit)
 
 # ACIS Data Service Docs: http://www.rcc-acis.org/docs_webservices.html
-
+# See RDoc for more details
+# Examples for finding stations within the bounding box of a park
 findStation(unitCode = "MABI", climateParameters=list('pcpn'), distance = 5)
-# FWS OrgCOde - Alamosa NWR
-findStation(unitCode = "FF06RALM00", climateParameters=list('pcpn'), distance = 50)
 findStation(unitCode = "MABI", distance=10, climateParameters=list('pcpn'), filePathAndName = "mabi.csv")
+findStation(unitCode = "GRCA", climateParameters=list("gdd","hdd","cdd"))
+# Examples for finding stations using a custom bounding box
+findStation(unitCode = "GRCA Custom", climateParameters=list('cdd','gdd','hdd'), distance = 10, customBBox = "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001", filePathAndName = "C:\\Windows\\Temp\\GRCA_DD_Stations.csv")
+
+findStation(unitCode = "SHEN", distance=25, climateParameters=list("gdd","hdd","cdd"))
+# Get weather observations for selected stations, parameters, and dates
 getWxObservations(climateParameters = list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations = 25056, sdate = "20150801", edate = "20150831", duration = "dly")
 getWxObservations(climateParameters = list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations = 17611, sdate = "20150801", edate = "20150831")
 getWxObservations(climateParameters = list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations= 25056, sdate = "20150801", edate = "20150810", filePathAndName = "dailyWx.csv")
 getWxObservations(climateParameters = list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations = 60903)
+# Find stations around a park and get weather observations for them
 stations <- findStation(unitCode = "AGFO", distance=10)
 getWxObservations(climateParameters=list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations=stations, sdate="20150801", edate="20150803")
+# Get PRISM grids for selected parks and parameters
 getGrids(unitCode = list("AGFO"), distance=10, sdate = "20150801", edate = "20150803", climateParameters = list("mint", "maxt"))
 getGrids(unitCode = list("AGFO"), distance=10, sdate = "20150801", edate = "20150803", climateParameters = list("mint", "maxt"), filePath = "D:\\temp\\trash")
 getGrids(unitCode = list("APPA"), sdate = "20150101", edate = "20150101", climateParameters = list("mint"), distance = 0, filePath="D:\\temp\\trash")

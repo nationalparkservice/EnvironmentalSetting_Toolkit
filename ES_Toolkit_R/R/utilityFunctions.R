@@ -9,7 +9,7 @@
 getStationSubtype <- function(testType, testSid) {
   # ACIS lookup
   acisLookup <-
-    fromJSON(system.file("ACISLookups.json", package = "IMClimateR")) # assumes placement in package inst subfolder
+    fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit")) # assumes placement in package inst subfolder
   typeDesc <-
     acisLookup$stationIdType$description[acisLookup$stationIdType$code == testType]
   subtypeDesc <- NULL
@@ -524,7 +524,8 @@ getUSHCN <- function (responseList) {
   hcnFlags0 <- rep("N", nrow(responseList))
   
   # Read txt file - using local copy because '#' character in URL file breaks both read.fwf() and read.table()
-  hcnStations0 <- read.fwf(file="inst/ushcn-v2.5-stations2.txt", c(13,9,9,7,3,31,7,7,7,2),header=FALSE)  #hcnStations0 <- content(GET(hcnURL))
+  hcnStations0 <- read.fwf(system.file("ushcn-v2.5-stations2.txt", package = "EnvironmentalSettingToolkit"), c(13,9,9,7,3,31,7,7,7,2), header=FALSE)
+  #hcnStations0 <- read.fwf(file="inst/ushcn-v2.5-stations2.txt", c(13,9,9,7,3,31,7,7,7,2),header=FALSE)  #hcnStations0 <- content(GET(hcnURL))
   #hcnStations0 <- read.fwf(file=url(hcnURL), c(8,9,9,7,3,31,7,7,7,2),header=FALSE)
   #hcnStations0 <- read.fwf(file=url(hcnURL), c(13,9,9,7,3,31,7,7,7,2),header=FALSE)
   hcnStations <- as.data.frame(hcnStations0)
