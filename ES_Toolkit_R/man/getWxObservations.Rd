@@ -5,7 +5,7 @@
 \title{Get station data for specified parameter(s) and station(s)}
 \usage{
 getWxObservations(climateStations, climateParameters = NULL, sdate = "por",
-  edate = "por", duration = "dly", reduceCodes = NULL,
+  edate = "por", duration = "dly", interval = "dly", reduceCodes = NULL,
   maxMissing = NULL, filePathAndName = NULL)
 }
 \arguments{
@@ -17,7 +17,9 @@ getWxObservations(climateStations, climateParameters = NULL, sdate = "por",
 
 \item{edate}{(optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.}
 
-\item{duration}{(optional) Default is daily ("dly"). Use "mly" for monthly.}
+\item{duration}{(optional) Duration of summarization period. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must specify reduce_codes.}
+
+\item{interval}{(optional) Time step for results. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must match duration value.}
 
 \item{reduceCodes}{(optional) For monthly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean.}
 

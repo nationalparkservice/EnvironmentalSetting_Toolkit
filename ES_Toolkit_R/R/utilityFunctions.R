@@ -42,14 +42,15 @@ getStationSubtype <- function(testType, testSid) {
 #' @param edate sdate (required) End date defined in calling source
 #' @param cUID (optional) station UID defined in calling source, used for getWXObservation requests
 #' @param duration (optional) station data duration specified in calling source; used for getWxObservations and getGrids requests
+#' @param interval (optional) time interval for results specified in calling source; used for getWxObservations and getGrids requests
 #' @param paramFlags (optional) used for getWxObservations (daily). Parameter flags: f = ACIS flag, s = source flag
 #' @param reduceList (optional) used for getWxObservations (monthly). Defaults to min, max, sum, and mean.
 #' @param maxMissing (optional) used for getWxObservations (monthly). Defaults to 1 (~3.3% missing days/month).
 #' @param gridElements grid request values defined in calling source
 #' @export
 #' 
-formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NULL, duration=NULL, paramFlags=NULL, reduceList=NULL, maxMissing=NULL, gridElements=NULL) {
-  print(requestType)
+formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NULL, duration=NULL, interval=NULL, paramFlags=NULL, reduceList=NULL, maxMissing=NULL, gridElements=NULL) {
+  #print(requestType)
   
   # Hard-coded request elements
   # Parameter flags: f = ACIS flag, s = source flag
@@ -74,26 +75,69 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
   if (!is.null(reduceList)) {
     reduceCount <- length(reduceList)
   }
+  if ("gdd" %in% climateParameters) {
+    gddBase <- 32
+  }
   # List of elements
   eList <- NULL
   
   # Build request
   if (requestType == "getWxObservations") {
     # Build elems list
-    if (duration == "mly" || duration == "yly") {
+    if ((duration == "mly" || duration == "yly") || (interval == "mly" || interval == "yly")) {
       eList <- vector('list', paramCount*reduceCount)
       counter <- 1
       # Iterate parameter list to create elems element:
       for (i in 1:paramCount) {
         for (j in 1:reduceCount) { #listJ, listI
-          e <-
-            list(
-              name = unlist(c(climateParameters[i])),
-              interval = duration, #"dly",#interval,
-              duration = duration,
-              reduce = c(reduceList[j]), 
-              maxmissing = maxMissing #unlist(mmElem)
-            )
+          if (is.null(interval)) {
+            if ("gdd" %in% climateParameters) {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  base = gddBase, 
+                  interval = duration,
+                  #"dly",#interval,
+                  duration = duration,
+                  reduce = c(reduceList[j]),
+                  maxmissing = maxMissing #unlist(mmElem)
+                )
+            }
+            else {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  interval = duration,
+                  #"dly",#interval,
+                  duration = duration,
+                  reduce = c(reduceList[j]),
+                  maxmissing = maxMissing #unlist(mmElem)
+                )
+            }
+          }
+          else {
+            if ("gdd" %in% climateParameters) {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  base = gddBase,
+                  interval = interval,
+                  duration = duration,
+                  reduce = c(reduceList[j]),
+                  maxmissing = maxMissing #unlist(mmElem)
+                )
+            }
+            else {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  interval = interval,
+                  duration = duration,
+                  reduce = c(reduceList[j]),
+                  maxmissing = maxMissing #unlist(mmElem)
+                )
+            }
+          }
           eList[[counter]] <- e
           counter <- counter + 1
         }
@@ -126,13 +170,24 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
     # Iterate parameter list to create elems element:
     eList <- vector('list', paramCount)
     for (i in 1:paramCount) {
-      e <-
-        list(
-          name = unlist(c(climateParameters[i])),
-          #interval = gridElements$interval,
-          duration = gridElements$duration,
-          prec = gridElements$dataPrecision
-        )
+      if (is.null(interval)) {
+        e <-
+          list(
+            name = unlist(c(climateParameters[i])),
+            #interval = gridElements$interval,
+            duration = gridElements$duration,
+            prec = gridElements$dataPrecision
+          )
+      }
+      else {
+        e <-
+          list(
+            name = unlist(c(climateParameters[i])),
+            interval = gridElements$interval,
+            duration = gridElements$duration,
+            prec = gridElements$dataPrecision
+          ) 
+      }
       #print(e)
       eList[[i]] <- e
     }
@@ -351,7 +406,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
   rangeBase <- length(rList$data[[1]]) - 1
   #if(duration == 'dly') {range <- rangeBase - 1}
   #else {range <- rangeBase}
-  print(rangeBase)
+  #print(rangeBase)
   itemCount <- 1
   #for (i in 2:(length(rList$data[[1]])) - 1)  {
   for (i in 1:rangeBase)  {  

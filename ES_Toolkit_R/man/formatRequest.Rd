@@ -5,8 +5,8 @@
 \title{formatRequest generates the JSON-formatted request to send to ACIS}
 \usage{
 formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
-  duration = NULL, paramFlags = NULL, reduceList = NULL,
-  maxMissing = NULL, gridElements = NULL)
+  duration = NULL, interval = NULL, paramFlags = NULL,
+  reduceList = NULL, maxMissing = NULL, gridElements = NULL)
 }
 \arguments{
 \item{requestType}{type of request: getDailyWxObservations, getMonthlyWxObservations, getGrids, (findStation)}
@@ -18,6 +18,8 @@ formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
 \item{edate}{sdate (required) End date defined in calling source}
 
 \item{duration}{(optional) station data duration specified in calling source; used for getWxObservations and getGrids requests}
+
+\item{interval}{(optional) time interval for results specified in calling source; used for getWxObservations and getGrids requests}
 
 \item{paramFlags}{(optional) used for getWxObservations (daily). Parameter flags: f = ACIS flag, s = source flag}
 

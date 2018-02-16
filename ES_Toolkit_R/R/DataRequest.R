@@ -6,7 +6,8 @@
 #' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: http://www.rcc-acis.org/docs_webservices.html
 #' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
 #' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
-#' @param duration (optional) Default is daily ("dly"). Use "mly" for monthly.
+#' @param duration (optional) Duration of summarization period. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must specify reduce_codes.
+#' @param interval (optional) Time step for results. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must match duration value.
 #' @param reduceCodes (optional) For monthly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean.
 #' @param maxMissing (optional) Maximum number of missing days within a month before the aggregate is not calculated (applied to each parameter). If missing, defaults to 1 (~3.3 percent missing days/month).
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
@@ -44,6 +45,7 @@ getWxObservations <-
            sdate = "por",
            edate = "por",
            duration = "dly",
+           interval = "dly",
            reduceCodes = NULL,
            maxMissing = NULL,
            filePathAndName = NULL) {
@@ -59,6 +61,9 @@ getWxObservations <-
     # Interval and duration (TODO: add interval as function param in v1.7)
     if (!is.null(duration)) {
       interval <- duration
+    }
+    if (!is.null(interval)) {
+      interval <- interval    
     }
     else {
       interval <- c("dly")
@@ -78,7 +83,7 @@ getWxObservations <-
       climateParameters <- climateParameters0[1:7]
       #climateParameters <- list('pcpn', 'mint', 'maxt', 'avgt', 'obst', 'snow', 'snwd')
     }
-    if (duration == "mly" || duration == "yly") {
+    if ((duration == "mly" || duration == "yly") || (interval == "mly" || interval == "yly")) {
       # If reduceCodes is NULL, default to min, max, sum, and mean.
       if (is.null(reduceCodes)) {
         reduceCodes <- list('min', 'max', 'sum', 'mean')
@@ -115,7 +120,7 @@ getWxObservations <-
     for (s in 1:length(listStations)) {
       df <- NULL
       cUid <- unlist(listStations[s])
-      body <- formatRequest(requestType = "getWxObservations", climateParameters = climateParameters, sdate, edate, cUid, duration = duration, reduceList = reduceList, maxMissing = maxMissing)
+      body <- formatRequest(requestType = "getWxObservations", climateParameters = climateParameters, sdate, edate, cUid, duration = duration, interval = interval, reduceList = reduceList, maxMissing = maxMissing)
       
       # This returns the full response - need to use content() and parse
       # content(dataResponseInit) results in a list lacking column names but containing data which needs to be
