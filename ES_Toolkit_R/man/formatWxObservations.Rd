@@ -5,7 +5,7 @@
 \title{formatWxObservations converts get*WxObservation response to a data frame, iterating by date and value}
 \usage{
 formatWxObservations(rList, duration, climateParameters, reduceCodes,
-  luElements)
+  luElements, metric)
 }
 \arguments{
 \item{duration}{station data duration specified in calling source}
@@ -15,6 +15,8 @@ formatWxObservations(rList, duration, climateParameters, reduceCodes,
 \item{reduceCodes}{A list of one or more reduce codes defined in calling source}
 
 \item{luElements}{lookup values defined in calling source}
+
+\item{metric}{(optional) Metric code for IMD Environmental}
 
 \item{responseContent}{list of response arrays containing name/value pairs: meta (default), data (date, values)}
 }

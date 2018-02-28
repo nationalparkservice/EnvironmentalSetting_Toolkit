@@ -218,9 +218,10 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
 #' @param climateParameters A list of one or more climate parameters defined in calling source
 #' @param reduceCodes A list of one or more reduce codes defined in calling source
 #' @param luElements lookup values defined in calling source
+#' @param metric (optional) Metric code for IMD Environmental
 #' @export
 #'
-formatWxObservations  <- function(rList, duration, climateParameters, reduceCodes, luElements) {
+formatWxObservations  <- function(rList, duration, climateParameters, reduceCodes, luElements, metric) {
   # Initialize return object (table or dataFrame)
   df <- NULL
   dfResponse <- NULL
@@ -452,6 +453,9 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
         }
       }
     }
+    if(!is.null(metric)) {
+      df$metric <- metric
+    }
   }
   
   # Convert factors and booleans to character vectors
@@ -598,6 +602,7 @@ getUSHCN <- function (responseList) {
 #' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
 #' @param dbName database name
 #' @param dbTable table name containing monitoring locations
+#' @return A list of station UIDs
 #' @export
 #'
 

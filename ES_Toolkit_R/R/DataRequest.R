@@ -11,6 +11,7 @@
 #' @param reduceCodes (optional) For monthly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean.
 #' @param maxMissing (optional) Maximum number of missing days within a month before the aggregate is not calculated (applied to each parameter). If missing, defaults to 1 (~3.3 percent missing days/month).
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
+#' @param metric (optional) A list of one or more climate metrics from the IMD Environmental Setting protocol
 #' @return A data frame containing the requested data. Note: date vector is in character format, not date format. See User Guide for more details: https://docs.google.com/document/d/1B0rf0VTEXQNWGW9fqg2LRr6cHR20VQhFRy7PU_BfOeA/
 #' @examples \dontrun{
 #' Precipitation, temperature (daily) weather observations for one station for a specifc date range:
@@ -48,15 +49,19 @@ getWxObservations <-
            interval = "dly",
            reduceCodes = NULL,
            maxMissing = NULL,
-           filePathAndName = NULL) {
+           filePathAndName = NULL,
+           metric = NULL) {
     # URLs and request parameters:
     # ACIS data services
     baseURL <- "http://data.rcc-acis.org/"
     webServiceSource <- "StnData"
     # Parameter flags: f = ACIS flag, s = source flag; only valid when requesting daily data
     #paramFlags <- c("f,s")
-    # Reduce flags: mcnt = count of missing values in the reduction period
-    reduceFlags <- c("mcnt")
+    # Reduce flags: mcnt = count of missing values in the reduction period; add date and run count missing for run summaries
+    if ("run" %in% names(reduceCodes)) {
+      reduceFlags <- c("date","mcnt","rmcnt")
+    }
+    else reduceFlags <- c("mcnt")
     reduceList <- NULL
     # Interval and duration (TODO: add interval as function param in v1.7)
     if (!is.null(duration)) {
@@ -148,7 +153,8 @@ getWxObservations <-
               duration = duration,
               climateParameters = climateParameters,
               reduceCodes = reduceCodes,
-              luElements = luElements
+              luElements = luElements,
+              metric = metric
             )
           # Create output object
           if (is.data.frame(dfResponse)) {
