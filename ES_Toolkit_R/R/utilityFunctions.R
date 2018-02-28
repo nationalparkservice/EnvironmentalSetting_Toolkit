@@ -594,6 +594,28 @@ getUSHCN <- function (responseList) {
   return(hcnFlags)
 }
 
+#' getProtocolStations function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
+#' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
+#' @param dbName database name
+#' @param dbTable table name containing monitoring locations
+#' @export
+#'
+
+getProtocolStations <- function(dbInstance, dbName, dbTable) {
+  # Open database connection
+  #library(RODBC)
+  connString <- paste0("driver={SQL Server};server=",dbInstance,";database=",dbName,";uid=Report_Data_Reader;pwd=ReportDataUser")
+  dbConn <- odbcDriverConnect(connString)
+  
+  # Get station list
+  res <- sqlQuery(dbConn, paste0("select uid from ",dbTable))
+  
+  # Close connection
+  odbcClose(dbConn)
+  
+  # Return list
+  return(res)
+}
 
 #' outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
 #' @param gridResponse grid (dataframe format) returned from ACIS request (by date)
