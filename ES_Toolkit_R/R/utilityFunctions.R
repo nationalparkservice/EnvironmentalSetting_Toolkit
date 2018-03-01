@@ -435,21 +435,68 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
     else { 
       for (j in 1:length(reduceCodes)) {
         vReduce <- unlist(reduceCodes[j])
-        vName <- paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
-        fName <- paste(vName, "countMissing", sep = "_")
-        #valueArray <-
-        #  matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 2, byrow = TRUE)[, 1]
+        if (length(grep("run", reduceCodes[j])) > 0) {
+          rName <-
+            paste(paste(climateParameters[i], vUnit, sep = "_"), "run", sep = "_")
+          yName <-
+            paste(paste(climateParameters[i], vUnit, sep = "_"), "runYear", sep = "_")
+          vName <-
+            paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
+          dName <-
+            paste(paste(climateParameters[i], vUnit, sep = "_"),
+                  "runEndDate",
+                  sep = "_")
+          fName <-
+            paste(paste(climateParameters[i], vUnit, sep = "_"),
+                  "countMissing",
+                  sep = "_")
+        }
+        else {
+          vName <-
+            paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
+          fName <- paste(vName, "countMissing", sep = "_")
+          #valueArray <-
+          #  matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 2, byrow = TRUE)[, 1]
+        }
         #if (itemCount<=(rangeBase-1)) {
         if (itemCount<=rangeBase) {
-          valueArray <-
-            matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 1]
-          flagArray <-
-            matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 2]
-          # For monthly data, value vector returned as character to accommodate missing records ("M")
-          df[[vName]] <- valueArray#as.numeric(valueArray)
-          df[[fName]] <-
-            as.character(replace(flagArray, flagArray == " ", NA))
-          itemCount <- itemCount + 1
+          if (length(grep("run", reduceCodes)) > 0) {
+            for (k in 1:length(lapply(rList$data, "[[", 1))) {
+              # For each run year, compose run count and date columns
+            yearArray <-
+              matrix(lapply(rList$data, "[[", 1)[[k]][[1]][[1]], ncol = 1)[,1]
+            #unlist(matrix(lapply(rList$data, "[[", 1), ncol = 1, byrow = TRUE)[,1])
+            #matrix(lapply(rList$data, "[[", 1)[[1]][[1]][[itemCount]], ncol = 1)[,1]
+            valueArray <-
+              unlist(lapply(matrix(lapply(rList$data, "[[", 2)[[k]][[1]], ncol = 1, byrow = TRUE)[,1], "[", 1))
+            dateArray <-
+              unlist(lapply(matrix(lapply(rList$data, "[[", 2)[[k]][[1]], ncol = 1, byrow = TRUE)[,1], "[", 2))
+            missingArray <-
+              matrix(lapply(rList$data, "[[", 2)[[k]], ncol = 1)[,1][2]
+            #unlist(sapply(matrix(lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE)[,1], "[", 2))
+            df[[yName]][k] <- yearArray
+            dfRun <- cbind(as.numeric(valueArray), dName = dateArray)
+            colnames(dfRun)[1] <- vName
+            colnames(dfRun)[2] <- dName
+            df[[rName]][k] <- list(dfRun)
+            colnames(df)[15] <- rName
+            # For missing count by year data, missing vector returned as character to accommodate missing records ("NA")
+            df[[fName]][k] <-
+              as.character(replace(missingArray, missingArray == " ", NA))
+            }
+            itemCount <- itemCount + 1
+          }
+          else {
+            valueArray <-
+              matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 1]
+            flagArray <-
+              matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 2]
+            # For monthly data, value vector returned as character to accommodate missing records ("M")
+            df[[vName]] <- valueArray#as.numeric(valueArray)
+            df[[fName]] <-
+              as.character(replace(flagArray, flagArray == " ", NA))
+            itemCount <- itemCount + 1
+          }
         }
       }
     }

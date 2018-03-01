@@ -57,11 +57,14 @@ getWxObservations <-
     webServiceSource <- "StnData"
     # Parameter flags: f = ACIS flag, s = source flag; only valid when requesting daily data
     #paramFlags <- c("f,s")
-    # Reduce flags: mcnt = count of missing values in the reduction period; add date and run count missing for run summaries
-    if ("run" %in% names(reduceCodes)) {
-      reduceFlags <- c("date","mcnt","rmcnt")
+    # Reduce flags: mcnt = count of missing values in the reduction period; add date and run count missing for run summaries and limit to one value (count) 
+    if (length(grep("run", reduceCodes)) > 0) {
+      reduceFlags <- c("mcnt","date")
+      reduceLimit <- 1
     }
-    else reduceFlags <- c("mcnt")
+    else {
+      reduceFlags <- c("mcnt")
+    }
     reduceList <- NULL
     # Interval and duration (TODO: add interval as function param in v1.7)
     if (!is.null(duration)) {
