@@ -740,7 +740,6 @@ getUSHCN <- function (responseList) {
 #' @return A list of station UIDs
 #' @export
 #'
-
 getProtocolStations <- function(dbInstance, dbName, dbTable) {
   # Open database connection
   #library(RODBC)
@@ -755,6 +754,44 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
   
   # Return list
   return(res)
+}
+
+#' getDepartureCounts function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
+#' @param rawDepartures Daily departures for a climate parameter (use getWxObservations() with normal="departure" to generate)
+#' @param duration Duration of summarization period. Default is daily ("yly"). Use "mly" for monthly.
+#' @param metric (optional) One or more climate metrics from the IMD Environmental Setting protocol
+#' @param filePathAndName (optional) File path and name including extension for output CSV file
+#' @return A dataframe of stations, dates, and their departure counts above or below the 30-year climate normal (1981-2010)
+#' @export
+#'
+getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, filePathAndName=NULL) {
+  dfResponse <- NULL
+  sArray <- NULL
+  dArray <- NULL
+  cArray <- NULL
+  
+  # Get date vector from rawDepartures
+  dates <- as.Date(rawDepartures$date, "%Y-%m-d")
+  
+  if (duration == "yly") countDuration <- format(dates, "%Y")
+  else countDuration <- format(dates, "%Y-%m")
+  
+  for (i in 1:length(countDuration)) {
+    # Get rows with those dates
+    toCount <- rawDepartures$date[date==i]
+    # Count above normal (+) and below normal (-)
+  }
+  
+  # Output file
+  if (!is.null(filePathAndName)) {
+    write.table(
+      dfResponse,
+      file = filePathAndName,
+      sep = ",",
+      row.names = FALSE,
+      qmethod = "double"
+    )
+  }
 }
 
 #' outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
