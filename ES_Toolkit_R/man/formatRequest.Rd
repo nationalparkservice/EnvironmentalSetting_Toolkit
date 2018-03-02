@@ -6,7 +6,8 @@
 \usage{
 formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
   duration = NULL, interval = NULL, paramFlags = NULL,
-  reduceList = NULL, maxMissing = NULL, gridElements = NULL)
+  reduceList = NULL, maxMissing = NULL, normal = NULL,
+  gridElements = NULL)
 }
 \arguments{
 \item{requestType}{type of request: getDailyWxObservations, getMonthlyWxObservations, getGrids, (findStation)}
@@ -26,6 +27,8 @@ formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
 \item{reduceList}{(optional) used for getWxObservations (monthly). Defaults to min, max, sum, and mean.}
 
 \item{maxMissing}{(optional) used for getWxObservations (monthly). Defaults to 1 (~3.3% missing days/month).}
+
+\item{normal}{(optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.}
 
 \item{gridElements}{grid request values defined in calling source}
 

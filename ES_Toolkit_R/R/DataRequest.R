@@ -11,6 +11,7 @@
 #' @param reduceCodes (optional) For monthly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean.
 #' @param maxMissing (optional) Maximum number of missing days within a month before the aggregate is not calculated (applied to each parameter). If missing, defaults to 1 (~3.3 percent missing days/month).
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
+#' @param normal (optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.
 #' @param metric (optional) A list of one or more climate metrics from the IMD Environmental Setting protocol
 #' @return A data frame containing the requested data. Note: date vector is in character format, not date format. See User Guide for more details: https://docs.google.com/document/d/1B0rf0VTEXQNWGW9fqg2LRr6cHR20VQhFRy7PU_BfOeA/
 #' @examples \dontrun{
@@ -50,6 +51,7 @@ getWxObservations <-
            reduceCodes = NULL,
            maxMissing = NULL,
            filePathAndName = NULL,
+           normal = NULL,
            metric = NULL) {
     # URLs and request parameters:
     # ACIS data services
@@ -63,7 +65,7 @@ getWxObservations <-
       reduceLimit <- 1
     }
     else {
-      reduceFlags <- c("mcnt")
+      if (is.null(normal)) reduceFlags <- c("mcnt")
     }
     reduceList <- NULL
     # Interval and duration (TODO: add interval as function param in v1.7)
@@ -93,13 +95,16 @@ getWxObservations <-
     }
     if ((duration == "mly" || duration == "yly") || (interval == "mly" || interval == "yly")) {
       # If reduceCodes is NULL, default to min, max, sum, and mean.
-      if (is.null(reduceCodes)) {
+      if (is.null(reduceCodes) && is.null(normal)) {
         reduceCodes <- list('min', 'max', 'sum', 'mean')
       }
-      reduceList <- vector('list', length(reduceCodes))
-      for (j in 1:length(reduceCodes)) {
-        r <- list(reduce = unlist(reduceCodes[j]), add = reduceFlags)
-        reduceList[[j]] <- r #unlist(c(r))
+      if (is.null(normal)) {
+        reduceList <- vector('list', length(reduceCodes))
+        
+        for (j in 1:length(reduceCodes)) {
+          r <- list(reduce = unlist(reduceCodes[j]), add = reduceFlags)
+          reduceList[[j]] <- r #unlist(c(r))
+        }
       }
       # If maxMissing is NULL, default to 1 (~3.3% missing days/month).
       if (is.null(maxMissing)) {
@@ -128,7 +133,7 @@ getWxObservations <-
     for (s in 1:length(listStations)) {
       df <- NULL
       cUid <- unlist(listStations[s])
-      body <- formatRequest(requestType = "getWxObservations", climateParameters = climateParameters, sdate, edate, cUid, duration = duration, interval = interval, reduceList = reduceList, maxMissing = maxMissing)
+      body <- formatRequest(requestType = "getWxObservations", climateParameters = climateParameters, sdate, edate, cUid, duration = duration, interval = interval, reduceList = reduceList, maxMissing = maxMissing, normal = normal)
       
       # This returns the full response - need to use content() and parse
       # content(dataResponseInit) results in a list lacking column names but containing data which needs to be
@@ -157,7 +162,8 @@ getWxObservations <-
               climateParameters = climateParameters,
               reduceCodes = reduceCodes,
               luElements = luElements,
-              metric = metric
+              normal = normal,
+              metric = metric 
             )
           # Create output object
           if (is.data.frame(dfResponse)) {

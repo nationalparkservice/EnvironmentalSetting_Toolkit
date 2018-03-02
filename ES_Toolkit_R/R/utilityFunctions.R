@@ -46,10 +46,11 @@ getStationSubtype <- function(testType, testSid) {
 #' @param paramFlags (optional) used for getWxObservations (daily). Parameter flags: f = ACIS flag, s = source flag
 #' @param reduceList (optional) used for getWxObservations (monthly). Defaults to min, max, sum, and mean.
 #' @param maxMissing (optional) used for getWxObservations (monthly). Defaults to 1 (~3.3% missing days/month).
+#' @param normal (optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.
 #' @param gridElements grid request values defined in calling source
 #' @export
 #' 
-formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NULL, duration=NULL, interval=NULL, paramFlags=NULL, reduceList=NULL, maxMissing=NULL, gridElements=NULL) {
+formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NULL, duration=NULL, interval=NULL, paramFlags=NULL, reduceList=NULL, maxMissing=NULL, normal=NULL, gridElements=NULL) {
   #print(requestType)
   
   # Hard-coded request elements
@@ -70,12 +71,12 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
   #   )
   # gridElements <- c(gridElements, grid = luElements[[1]]$code)
   # Reduce flags: mcnt = count of missing values in the reduction period
-  reduceFlags <- c("mcnt")
+  #reduceFlags <- c("mcnt")
   paramCount <- length(climateParameters)
   if (!is.null(reduceList)) {
     reduceCount <- length(reduceList)
   }
-  if ("gdd" %in% climateParameters) {
+  if (length(grep("gdd", climateParameters)) > 0) {
     gddBase <- 32
   }
   # List of elements
@@ -85,73 +86,116 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
   if (requestType == "getWxObservations") {
     # Build elems list
     if ((duration == "mly" || duration == "yly") || (interval == "mly" || interval == "yly")) {
-      eList <- vector('list', paramCount*reduceCount)
+      if(is.null(normal)) eList <- vector('list', paramCount*reduceCount)
+      else eList <- vector('list', paramCount)
       counter <- 1
       # Iterate parameter list to create elems element:
       for (i in 1:paramCount) {
-        for (j in 1:reduceCount) { #listJ, listI
-          if (is.null(interval)) {
-            if ("gdd" %in% climateParameters) {
-              e <-
-                list(
-                  name = unlist(c(climateParameters[i])),
-                  base = gddBase, 
-                  interval = duration,
-                  #"dly",#interval,
-                  duration = duration,
-                  reduce = c(reduceList[j]),
-                  maxmissing = maxMissing #unlist(mmElem)
-                )
+        if (is.null(normal)) {
+          for (j in 1:reduceCount) {
+            #listJ, listI
+            if (is.null(interval)) {
+              if (length(grep("gdd", climateParameters)) > 0) {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    base = gddBase,
+                    interval = duration,
+                    #"dly",#interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
+              else {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    interval = duration,
+                    #"dly",#interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
             }
             else {
-              e <-
-                list(
-                  name = unlist(c(climateParameters[i])),
-                  interval = duration,
-                  #"dly",#interval,
-                  duration = duration,
-                  reduce = c(reduceList[j]),
-                  maxmissing = maxMissing #unlist(mmElem)
-                )
+              if (length(grep("gdd", climateParameters)) > 0) {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    base = gddBase,
+                    interval = interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
+              else {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    interval = interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
             }
+            eList[[counter]] <- e
+            counter <- counter + 1
           }
-          else {
-            if ("gdd" %in% climateParameters) {
-              e <-
-                list(
-                  name = unlist(c(climateParameters[i])),
-                  base = gddBase,
-                  interval = interval,
-                  duration = duration,
-                  reduce = c(reduceList[j]),
-                  maxmissing = maxMissing #unlist(mmElem)
-                )
-            }
-            else {
-              e <-
-                list(
-                  name = unlist(c(climateParameters[i])),
-                  interval = interval,
-                  duration = duration,
-                  reduce = c(reduceList[j]),
-                  maxmissing = maxMissing #unlist(mmElem)
-                )
-            }
-          }
-          eList[[counter]] <- e
-          counter <- counter + 1
         }
-      }
-    }
+        else {
+          if (is.null(interval)) {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  interval = duration,
+                  duration = duration,
+                  normal = normal
+                  #maxmissing = maxMissing #unlist(mmElem)
+                )
+              eList[[i]] <- e
+            }
+            else {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  interval = interval,
+                  duration = duration,
+                  normal = normal
+                  #maxmissing = maxMissing #unlist(mmElem)
+                )
+              eList[[i]] <- e
+            }
+          }
+        }
+      } # mly or yly
     else {
       eList <- vector('list', paramCount)
       # Iterate parameter list to create elems element:
+      
       for (i in 1:paramCount) {
-        e <- list(name = unlist(c(climateParameters[i])), add = paramFlags)
-        #print(e)
-        eList[[i]] <- e
+        if (is.null(normal)) {
+          e <- list(name = unlist(c(climateParameters[i])), add = paramFlags)
+          #print(e)
+          eList[[i]] <- e
+        }
+        else {
+          e <-
+            list(
+              name = unlist(c(climateParameters[i])),
+              interval = interval,
+              duration = duration,
+              normal = normal
+              #maxmissing = maxMissing #unlist(mmElem)
+            )
+          eList[[i]] <- e
+        }
       }
     }
+
     # Climate parameters as JSON with flags
     elems <- toJSON(eList, auto_unbox = TRUE)
     # Build body (bList)
@@ -219,9 +263,10 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
 #' @param reduceCodes A list of one or more reduce codes defined in calling source
 #' @param luElements lookup values defined in calling source
 #' @param metric (optional) Metric code for IMD Environmental
+#' @param normal (optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.
 #' @export
 #'
-formatWxObservations  <- function(rList, duration, climateParameters, reduceCodes, luElements, metric) {
+formatWxObservations  <- function(rList, duration, climateParameters, reduceCodes, luElements, normal, metric) {
   # Initialize return object (table or dataFrame)
   df <- NULL
   dfResponse <- NULL
@@ -416,88 +461,131 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
       luElements[which(luElements$code == climateParameters[i]),]$unitabbr
     
     if(duration == 'dly') {
-      vName <- paste(climateParameters[i], vUnit, sep = "_")
       fName <- paste(climateParameters[i], "acis_flag", sep = "_")
-      valueArray <-
-        matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 1]
-      flagArray <-
-        matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 2]
-      sName <-
-        paste(climateParameters[i], "source_flag", sep = "_")
-      sourceFlagArray <-
-        matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 3]
-      df[[vName]] <- as.numeric(valueArray)
-      df[[fName]] <-
-        as.character(replace(flagArray, flagArray == " ", NA))
-      df[[sName]] <-
-        as.character(replace(sourceFlagArray, sourceFlagArray == " ", NA))
+      if (is.null(normal)) {
+        vName <- paste(climateParameters[i], vUnit, sep = "_")
+        valueArray <-
+          matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 1]
+        flagArray <-
+          matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 2]
+        sName <-
+          paste(climateParameters[i], "source_flag", sep = "_")
+        sourceFlagArray <-
+          matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 3]
+        df[[vName]] <- as.numeric(valueArray)
+        df[[fName]] <-
+          as.character(replace(flagArray, flagArray == " ", NA))
+        df[[sName]] <-
+          as.character(replace(sourceFlagArray, sourceFlagArray == " ", NA))
+      }
+      else {
+        if (normal == 1)
+          vValue = paste("normal", vUnit, sep = "_")
+        else
+          vValue = paste("departure", vUnit, sep = "_")
+        vName <- paste(climateParameters[i], vValue, sep = "_")
+        valueArray <-
+          unlist(lapply(matrix(
+            lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE
+          )[, 1], "[", 1))
+        
+        df[[vName]] <- as.numeric(valueArray)
+        itemCount <- itemCount + 1
+      }
     }
-    else { 
-      for (j in 1:length(reduceCodes)) {
-        vReduce <- unlist(reduceCodes[j])
-        if (length(grep("run", reduceCodes[j])) > 0) {
-          rName <-
-            paste(paste(climateParameters[i], vUnit, sep = "_"), "run", sep = "_")
-          yName <-
-            paste(paste(climateParameters[i], vUnit, sep = "_"), "runYear", sep = "_")
-          vName <-
-            paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
-          dName <-
-            paste(paste(climateParameters[i], vUnit, sep = "_"),
-                  "runEndDate",
-                  sep = "_")
-          fName <-
-            paste(paste(climateParameters[i], vUnit, sep = "_"),
-                  "countMissing",
-                  sep = "_")
-        }
-        else {
-          vName <-
-            paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
-          fName <- paste(vName, "countMissing", sep = "_")
-          #valueArray <-
-          #  matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 2, byrow = TRUE)[, 1]
-        }
-        #if (itemCount<=(rangeBase-1)) {
-        if (itemCount<=rangeBase) {
-          if (length(grep("run", reduceCodes)) > 0) {
-            for (k in 1:length(lapply(rList$data, "[[", 1))) {
-              # For each run year, compose run count and date columns
-            yearArray <-
-              matrix(lapply(rList$data, "[[", 1)[[k]][[1]][[1]], ncol = 1)[,1]
-            #unlist(matrix(lapply(rList$data, "[[", 1), ncol = 1, byrow = TRUE)[,1])
-            #matrix(lapply(rList$data, "[[", 1)[[1]][[1]][[itemCount]], ncol = 1)[,1]
-            valueArray <-
-              unlist(lapply(matrix(lapply(rList$data, "[[", 2)[[k]][[1]], ncol = 1, byrow = TRUE)[,1], "[", 1))
-            dateArray <-
-              unlist(lapply(matrix(lapply(rList$data, "[[", 2)[[k]][[1]], ncol = 1, byrow = TRUE)[,1], "[", 2))
-            missingArray <-
-              matrix(lapply(rList$data, "[[", 2)[[k]], ncol = 1)[,1][2]
-            #unlist(sapply(matrix(lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE)[,1], "[", 2))
-            df[[yName]][k] <- yearArray
-            dfRun <- cbind(as.numeric(valueArray), dName = dateArray)
-            colnames(dfRun)[1] <- vName
-            colnames(dfRun)[2] <- dName
-            df[[rName]][k] <- list(dfRun)
-            colnames(df)[15] <- rName
-            # For missing count by year data, missing vector returned as character to accommodate missing records ("NA")
-            df[[fName]][k] <-
-              as.character(replace(missingArray, missingArray == " ", NA))
-            }
-            itemCount <- itemCount + 1
+    else { #mly or yly
+      if (is.null(normal)) {
+        for (j in 1:length(reduceCodes)) {
+          vReduce <- unlist(reduceCodes[j])
+          if (length(grep("run", reduceCodes[j])) > 0) {
+            rName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"), "run", sep = "_")
+            yName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"),
+                    "runYear",
+                    sep = "_")
+            vName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
+            dName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"),
+                    "runEndDate",
+                    sep = "_")
+            fName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"),
+                    "countMissing",
+                    sep = "_")
           }
           else {
-            valueArray <-
-              matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 1]
-            flagArray <-
-              matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 2]
-            # For monthly data, value vector returned as character to accommodate missing records ("M")
-            df[[vName]] <- valueArray#as.numeric(valueArray)
-            df[[fName]] <-
-              as.character(replace(flagArray, flagArray == " ", NA))
-            itemCount <- itemCount + 1
+            vName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
+            fName <- paste(vName, "countMissing", sep = "_")
+            #valueArray <-
+            #  matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 2, byrow = TRUE)[, 1]
+          }
+          #if (itemCount<=(rangeBase-1)) {
+          if (itemCount <= rangeBase) {
+            if (length(grep("run", reduceCodes)) > 0) {
+              for (k in 1:length(lapply(rList$data, "[[", 1))) {
+                # For each run year, compose run count and date columns
+                yearArray <-
+                  matrix(lapply(rList$data, "[[", 1)[[k]][[1]][[1]], ncol = 1)[, 1]
+                #unlist(matrix(lapply(rList$data, "[[", 1), ncol = 1, byrow = TRUE)[,1])
+                #matrix(lapply(rList$data, "[[", 1)[[1]][[1]][[itemCount]], ncol = 1)[,1]
+                valueArray <-
+                  unlist(lapply(matrix(
+                    lapply(rList$data, "[[", 2)[[k]][[1]],
+                    ncol = 1,
+                    byrow = TRUE
+                  )[, 1], "[", 1))
+                dateArray <-
+                  unlist(lapply(matrix(
+                    lapply(rList$data, "[[", 2)[[k]][[1]],
+                    ncol = 1,
+                    byrow = TRUE
+                  )[, 1], "[", 2))
+                missingArray <-
+                  matrix(lapply(rList$data, "[[", 2)[[k]], ncol = 1)[, 1][2]
+                #unlist(sapply(matrix(lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE)[,1], "[", 2))
+                df[[yName]][k] <- yearArray
+                dfRun <-
+                  cbind(as.numeric(valueArray), dName = dateArray)
+                colnames(dfRun)[1] <- vName
+                colnames(dfRun)[2] <- dName
+                df[[rName]][k] <- list(dfRun)
+                colnames(df)[15] <- rName
+                # For missing count by year data, missing vector returned as character to accommodate missing records ("NA")
+                df[[fName]][k] <-
+                  as.character(replace(missingArray, missingArray == " ", NA))
+              }
+              itemCount <- itemCount + 1
+            }
+            else {
+              valueArray <-
+                matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 1]
+              flagArray <-
+                matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 2]
+              # For monthly data, value vector returned as character to accommodate missing records ("M")
+              df[[vName]] <- valueArray#as.numeric(valueArray)
+              df[[fName]] <-
+                as.character(replace(flagArray, flagArray == " ", NA))
+              itemCount <- itemCount + 1
+            }
           }
         }
+      }
+      else { # !is.null(normal)
+        if (normal == 1)
+          vValue = paste("normal", vUnit, sep = "_")
+        else
+          vValue = paste("departure", vUnit, sep = "_")
+        vName <- paste(climateParameters[i], vValue, sep = "_")
+        valueArray <-
+          unlist(lapply(matrix(
+            lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE
+          )[, 1], "[", 1))
+        
+        df[[vName]] <- as.numeric(valueArray)
+        itemCount <- itemCount + 1
       }
     }
     if(!is.null(metric)) {
