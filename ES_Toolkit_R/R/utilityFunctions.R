@@ -766,21 +766,34 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
 #'
 getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, filePathAndName=NULL) {
   dfResponse <- NULL
-  sArray <- NULL
-  dArray <- NULL
-  cArray <- NULL
   
   # Get date vector from rawDepartures
   dates <- as.Date(rawDepartures$date, "%Y-%m-d")
   
   if (duration == "yly") countDuration <- format(dates, "%Y")
   else countDuration <- format(dates, "%Y-%m")
+  aArray <- vector(mode = "integer", length = length(countDuration))
+  bArray <- vector(mode = "integer", length = length(countDuration))
+  idArray <- vector(mode = "integer", length = length(countDuration))
+  dArray <- vector(mode = "character", length = length(countDuration))
   
   for (i in 1:length(countDuration)) {
     # Get rows with those dates
-    toCount <- rawDepartures$date[date==i]
+    toCount <- subset(rawDepartures, format(rawDepartures$date,"%Y") == countDuration[i])
+    #toCount <- rawDepartures$date[format(rawDepartures$date,"%Y")==i]
     # Count above normal (+) and below normal (-)
+    above <- nrow(subset(toCount, avgt_departure_F > 0))
+    below <- nrow(subset(toCount, avgt_departure_F < 0))
+    idArray[i] <- rawDepartures$uid[i]
+    dArray[i] <- rawDepartures$date[i]
+    aArray[i] <- above
+    bArray[i] <- below
+    dfResponse <- cbind(as.integer(idArray), as.Date(dArray), as.integer(aArray), a.integer(bArray))
   }
+  colnames(dfResponse)[1] <- "uid"
+  colnames(dfResponse)[2] <- "date"
+  colnames(dfResponse)[3] <- "cntAboveNormal"
+  colnames(dfResponse)[4] <- "cntBelowNormal"
   
   # Output file
   if (!is.null(filePathAndName)) {
@@ -792,6 +805,8 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
       qmethod = "double"
     )
   }
+  
+  return(dfResponse)
 }
 
 #' outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)

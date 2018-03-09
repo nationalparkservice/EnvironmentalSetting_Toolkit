@@ -10,7 +10,7 @@
 # @param sourceURL sourceURL for ACIS data services
 #' @param unitCode One NPS unit code as a string
 #' @param distance (optional) Distance (in kilometers) to buffer park bounding box
-#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
+#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd, gdd, hdd, cdd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
 #' @param customBBox (optional) String containing bounding box geographic coordinates (longitude,latitude) using the WGS84 datum in the following format: Lower Left Longitude, Lower Left Latitude, Upper Right Longitude, Upper Right Latitude. Note: longitude is negative in the western hemisphere. Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"
 #' @return A data frame containing station information for stations near the specified park. See User Guide for more details:  \url{}

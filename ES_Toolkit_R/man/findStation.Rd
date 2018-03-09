@@ -12,7 +12,7 @@ findStation(unitCode, distance = NULL, climateParameters = NULL,
 
 \item{distance}{(optional) Distance (in kilometers) to buffer park bounding box}
 
-\item{climateParameters}{A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
+\item{climateParameters}{A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd, gdd, hdd, cdd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
 
 \item{filePathAndName}{(optional) File path and name including extension for output CSV file}
 
