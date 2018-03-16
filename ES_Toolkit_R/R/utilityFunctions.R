@@ -765,31 +765,47 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
 #' @export
 #'
 getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, filePathAndName=NULL) {
-  dfResponse <- NULL
+  dfResponse0 <- NULL
   
   # Get date vector from rawDepartures
   dates <- as.Date(rawDepartures$date, "%Y-%m-d")
   
-  if (duration == "yly") countDuration <- format(dates, "%Y")
-  else countDuration <- format(dates, "%Y-%m")
-  aArray <- vector(mode = "integer", length = length(countDuration))
-  bArray <- vector(mode = "integer", length = length(countDuration))
-  idArray <- vector(mode = "integer", length = length(countDuration))
-  dArray <- vector(mode = "character", length = length(countDuration))
+  if (duration == "yly") countDuration <- unique(format(dates, "%Y"))
+  else countDuration <- unique(format(dates, "%Y-%m"))
+  # Initialize output vectors: length == # years
+  yearCount <- length(countDuration)
+  stationCount <- length(unique(rawDepartures$uid))
+  aArray <- vector(mode = "integer", length = yearCount*stationCount)
+  bArray <- vector(mode = "integer", length = yearCount*stationCount)
+  idArray <- vector(mode = "integer", length = yearCount*stationCount)
+  dArray <- vector(mode = "character", length = yearCount*stationCount)
   
   for (i in 1:length(countDuration)) {
-    # Get rows with those dates
+    # Get rows with those dates (years)
     toCount <- subset(rawDepartures, format(rawDepartures$date,"%Y") == countDuration[i])
-    #toCount <- rawDepartures$date[format(rawDepartures$date,"%Y")==i]
+    for (j in 1:length(unique(toCount$uid))) {
+      # Get each station for year
+      byStation <- subset(toCount, uid == unique(toCount$uid)[j])
+      
+      # Count above normal (+) and below normal (-)
+      above <- nrow(subset(byStation, avgt_departure_F > 0))
+      below <- nrow(subset(byStation, avgt_departure_F < 0))
+      idArray[i] <- byStation$uid[1] # rawDepartures$uid[i]
+      dArray[i] <- format(byStation$date[1],"%Y")  #format(rawDepartures$date[i],"%Y")
+      aArray[i] <- above
+      bArray[i] <- below
+    }
+    
     # Count above normal (+) and below normal (-)
-    above <- nrow(subset(toCount, avgt_departure_F > 0))
-    below <- nrow(subset(toCount, avgt_departure_F < 0))
-    idArray[i] <- rawDepartures$uid[i]
-    dArray[i] <- rawDepartures$date[i]
-    aArray[i] <- above
-    bArray[i] <- below
-    dfResponse <- cbind(as.integer(idArray), as.Date(dArray), as.integer(aArray), a.integer(bArray))
+    # above <- nrow(subset(toCount, avgt_departure_F > 0))
+    # below <- nrow(subset(toCount, avgt_departure_F < 0))
+    # idArray[i] <- toCount$uid[1] # rawDepartures$uid[i]
+    # dArray[i] <- format(toCount$date[1],"%Y")  #format(rawDepartures$date[i],"%Y")
+    # aArray[i] <- above
+    # bArray[i] <- below
   }
+  dfResponse0 <- cbind(idArray, dArray, aArray, bArray)
+  dfResponse <- as.data.frame(dfResponse0)
   colnames(dfResponse)[1] <- "uid"
   colnames(dfResponse)[2] <- "date"
   colnames(dfResponse)[3] <- "cntAboveNormal"
