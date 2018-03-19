@@ -34,6 +34,9 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 	Version 2.3 - August 2018
 		Generic capabilities: add DayMet/NASA NEX as sources, upload polygon
   
+  Version 2.3 - August 2018
+		Generic capabilities: add DayMet/NASA NEX as sources, upload polygon
+		
 #### Release 2.0 - Planned for March 2018 ####
 
 #### R - Installing the ES_Toolkit_R Package ####
