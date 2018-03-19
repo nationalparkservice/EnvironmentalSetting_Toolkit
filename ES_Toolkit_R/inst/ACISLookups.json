@@ -478,7 +478,7 @@
     "RasterValue": "NULL",
     "Lifecycle": "Active",
     "ProtocolVersion": 1,
-	"Request": "",
+	"Request": "cnt_ge_90",
     "CreateDate": "2018-01-09 00:00:00.0000000"
   },
   {
@@ -492,7 +492,7 @@
     "RasterValue": "NULL",
     "Lifecycle": "Active",
     "ProtocolVersion": 1,
-	"Request": "",
+	"Request": "cnt_le_32",
     "CreateDate": "2018-01-09 00:00:00.0000000"
   },
   {
@@ -506,7 +506,7 @@
     "RasterValue": "NULL",
     "Lifecycle": "Active",
     "ProtocolVersion": 1,
-	"Request": "",
+	"Request": "cnt_le_32",
     "CreateDate": "2018-01-09 00:00:00.0000000"
   },
   {
@@ -520,7 +520,7 @@
     "RasterValue": "NULL",
     "Lifecycle": "Active",
     "ProtocolVersion": 1,
-	"Request": "",
+	"Request": "cnt_le_0",
     "CreateDate": "2018-01-09 00:00:00.0000000"
   },
   {
@@ -534,7 +534,7 @@
     "RasterValue": "NULL",
     "Lifecycle": "Active",
     "ProtocolVersion": 1,
-	"Request": "",
+	"Request": "cnt_gt_0",
     "CreateDate": "2018-01-09 00:00:00.0000000"
   },
   {
@@ -548,7 +548,7 @@
     "RasterValue": "NULL",
     "Lifecycle": "Active",
     "ProtocolVersion": 1,
-	"Request": "",
+	"Request": "cnt_gt_0",
     "CreateDate": "2018-01-09 00:00:00.0000000"
   },
   {
@@ -562,7 +562,7 @@
     "RasterValue": "NULL",
     "Lifecycle": "Active",
     "ProtocolVersion": 1,
-	"Request": "",
+	"Request": "cnt_gt_0",
     "CreateDate": "2018-01-09 00:00:00.0000000"
   },
   {

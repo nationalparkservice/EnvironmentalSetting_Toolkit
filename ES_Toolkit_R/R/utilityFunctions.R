@@ -758,7 +758,7 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
 
 #' getDepartureCounts function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
 #' @param rawDepartures Daily departures for a climate parameter (use getWxObservations() with normal="departure" to generate)
-#' @param duration Duration of summarization period. Default is daily ("yly"). Use "mly" for monthly.
+#' @param duration Duration of summarization period. Default is yearly ("yly"). Use "mly" for monthly.
 #' @param metric (optional) One or more climate metrics from the IMD Environmental Setting protocol
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
 #' @return A dataframe of stations, dates, and their departure counts above or below the 30-year climate normal (1981-2010)
@@ -770,6 +770,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
   bArray <- NULL
   dArray <- NULL
   idArray <- NULL
+  metricArray <- NULL
   
   # Get date vector from rawDepartures
   dates <- as.Date(rawDepartures$date, "%Y-%m-d")
@@ -784,6 +785,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
   bArray <- vector(mode = "integer", length = rowCount)
   idArray <- vector(mode = "integer", length = rowCount)
   dArray <- vector(mode = "character", length = rowCount)
+  metricArray <- rep(metric, rowCount)
   k <- 1
   for (i in 1:yearCount) {
     # Get rows with those dates (year)
@@ -792,8 +794,14 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
       # Get data for each station for year
       byStation <- subset(toCount, uid == unique(toCount$uid)[j])
       # Count above normal (+) and below normal (-)
-      above <- nrow(subset(byStation, avgt_departure_F > 0))
-      below <- nrow(subset(byStation, avgt_departure_F < 0))
+      if ("avgt_departure_F" %in% colnames(byStation)) {
+        above <- nrow(subset(byStation, avgt_departure_F > 0))
+        below <- nrow(subset(byStation, avgt_departure_F < 0))
+      }
+      else {
+        above <- nrow(subset(byStation, pcpn_departure_in > 0))
+        below <- nrow(subset(byStation, pcpn_departure_in < 0))
+      }
       idArray[k] <- byStation$uid[1] # rawDepartures$uid[i]
       dArray[k] <- format(byStation$date[1],"%Y")  #format(rawDepartures$date[i],"%Y")
       aArray[k] <- above
@@ -803,12 +811,13 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
     }
     toCount <- NULL
   }
-  dfResponse0 <- cbind(idArray, dArray, aArray, bArray)
+  dfResponse0 <- cbind(idArray, dArray, aArray, bArray, metricArray)
   dfResponse <- as.data.frame(dfResponse0)
   colnames(dfResponse)[1] <- "uid"
   colnames(dfResponse)[2] <- "date"
   colnames(dfResponse)[3] <- "cntAboveNormal"
   colnames(dfResponse)[4] <- "cntBelowNormal"
+  colnames(dfResponse)[5] <- "metric"
   
   # Output file
   if (!is.null(filePathAndName)) {
@@ -822,6 +831,282 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
   }
   
   return(dfResponse)
+}
+
+#' getStationMetrics requests Environmental Setting protocol metrics for a set of stations
+#' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
+#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: http://www.rcc-acis.org/docs_webservices.html
+#' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
+#' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
+#' @param filePathAndRootname File path and root name for output CSV files. Do not include extension.
+#' @return CSV files by metric
+#' @examples \dontrun{
+#' }
+#' @export
+#'
+getStationMetrics <-
+  function(climateStations,
+           sdate = "por",
+           edate = "por",
+           filePathAndRootname) {
+    # Iterate list of parameters, creating output data frames (and optionally, CSV files), by metric
+    #acisLookup <-
+    #  fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit")) # assumes placement in package inst subfolder
+
+    # metricIdx <- grep('CS', acisLookup$climateMetrics$Metric)
+    # for (i in 1:length(metricIdx)) {
+    #   idx = metricIdx[[i]]
+    #   if (acisLookup$climateMetrics[idx, ]$Metric != "CST8") {
+    #     # do something
+    #   }
+    # }
+    # Re-factor to read from lookups
+    #metricListTemperature <- list("CST1","CST2","CST3","CST4","CST5","CST6","CST7")
+    #metricListPrecipitation <- list("CPT1","CPT2","CST3","CPT4","CPT5","CPT6")
+    # Get Temperature Metrics
+    # for (i in 1:length(metricListTemperature)) {
+    #   metric <- metricListTemperature[[i]]
+    #   reduceValue <- NULL
+    #   # Get reduce elements
+    #   #acisLookup$stationIdType$description[acisLookup$stationIdType$code == testType]
+    #   #reduceValue <- acisLookup$climateMetrics$Request[acisLookup$climateMetrics$Metric == metric]
+    #   # Call getWxObservations
+    # }
+    # Get CST1: Hot Days (annual count)
+    CST1Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("maxt"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_90",
+        metric = "CST1"
+      )
+    outputMetricFile(CST1Data, "CST1",
+                     filePathAndRootname)
+    
+    # Get CST2: Cold Days (annual count)
+    CST2Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("maxt"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_le_32",
+        metric = "CST2"
+      )
+    outputMetricFile(CST2Data, "CST2",
+                     filePathAndRootname)
+    
+    # Get CST3: Sub-freezing Days (annual count)
+    CST3Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("mint"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_le_32",
+        metric = "CST3"
+      )
+    outputMetricFile(CST3Data, "CST3",
+                     filePathAndRootname)
+    
+    # Get CST4: Days at or below 0 (annual count)
+    CST4Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("mint"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_le_0",
+        metric = "CST4"
+      )
+    outputMetricFile(CST4Data, "CST4",
+                     filePathAndRootname)
+    
+    # Get CST5: Growing degree days (base temperature >= 32) (annual count)
+    CST5Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("gdd32"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_gt_0",
+        metric = "CST5"
+      )
+    outputMetricFile(CST5Data, "CST5",
+                     filePathAndRootname)
+    
+    # Get CST6: Heating degree days (default base temperature >= 65) (annual count)
+    CST6Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("hdd"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_gt_0",
+        metric = "CST6"
+      )
+    outputMetricFile(CST6Data, "CST6",
+                     filePathAndRootname)
+    
+    # Get CST7: Cooling degree days (default base temperature >= 65) (annual count)
+    CST7Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("cdd"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_gt_0",
+        metric = "CST7"
+      )
+    outputMetricFile(CST7Data, "CST7",
+                     filePathAndRootname)
+    
+    # Get CST 8 and 9: Above and Below Normal Temperature Days
+    CST8and9Source <- 
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("avgt"),
+        sdate = sdate,
+        edate = edate,
+        duration = "dly",
+        interval = "dly",
+        normal = "departure",
+        maxMissing = 10,
+        metric = "CST8and9"
+      )
+    CST8and9Data <- getDepartureCounts(rawDepartures = CST8and9Source, duration = "yly", metric = "CSP8and9")
+    outputMetricFile(CST8and9Data, "CST8and9",
+                     filePathAndRootname)
+    
+    # Get CSP1: Heavy precip days
+    CSP1Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_1.0",
+        metric = "CSP1"
+      )
+    outputMetricFile(CSP1Data, "CSP1",
+                     filePathAndRootname)
+    
+    #Get CSP2: Extreme precip days
+    CSP2Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_2.0",
+        metric = "CSP2"
+      )
+    outputMetricFile(CSP2Data, "CSP2",
+                     filePathAndRootname)
+    
+    # Get CSP3: Micro-drought
+    #TBW
+    
+    # Get CSP4: Measurable snow days
+    CSP4Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("snow"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_0.1",
+        metric = "CSP4"
+      )
+    outputMetricFile(CSP4Data, "CSP4",
+                     filePathAndRootname)
+    
+    # Get CSP5: Moderate snow days
+    CSP5Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("snow"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_3.0",
+        metric = "CSP5"
+      )
+    outputMetricFile(CSP5Data, "CSP5",
+                     filePathAndRootname)
+    
+    # Get CSP6: Heavy snow days
+    CSP6Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("snow"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_5.0",
+        metric = "CSP6"
+      )
+    outputMetricFile(CSP6Data, "CSP6",
+                     filePathAndRootname)
+    
+    # Get CSP 7 and 8: Above and Below Normal Precipitation Days
+    CSP8and9Source <- 
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "dly",
+        interval = "dly",
+        normal = "departure",
+        maxMissing = 10,
+        metric = "CSP7and8"
+      )
+    CSP8and9Data <- getDepartureCounts(rawDepartures = CSP8and9Source, duration = "yly", metric = "CSP8and9")
+    outputMetricFile(CSP8and9Data, "CSP7and8",
+                     filePathAndRootname)
+    
+    return("SUCCESS")
+    
+  }
+
+#' outputMetricFile writes metric data frames to a CSV file
+#' @param metricData
+#' @param metricName
+#' @param filePathAndRootName
+#'
+outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
+  outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_METRIC.csv"), sep = "")
+  write.table(
+    metricData,
+    file = outFile,
+    sep = ",",
+    row.names = FALSE,
+    qmethod = "double"
+  )
 }
 
 #' outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
