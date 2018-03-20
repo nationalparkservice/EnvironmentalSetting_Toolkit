@@ -108,7 +108,13 @@ getWxObservations <-
       }
       # If maxMissing is NULL, default to 1 (~3.3% missing days/month).
       if (is.null(maxMissing)) {
-        maxMissing <- 1
+        if (length(grep("cnt", reduceCodes)) > 0) {
+          # 'Force' return of cnt and mcnt
+          maxMissing <- 999
+        }
+        else {
+          maxMissing <- 1
+        }
       }
     }
     
