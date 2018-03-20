@@ -759,9 +759,9 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
 #' getDepartureCounts function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
 #' @param rawDepartures Daily departures for a climate parameter (use getWxObservations() with normal="departure" to generate)
 #' @param duration Duration of summarization period. Default is yearly ("yly"). Use "mly" for monthly.
-#' @param metric (optional) One or more climate metrics from the IMD Environmental Setting protocol
+#' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
-#' @return A dataframe of stations, dates, and their departure counts above or below the 30-year climate normal (1981-2010)
+#' @return A data frame of stations, dates, and their departure counts above or below the 30-year climate normal (1981-2010)
 #' @export
 #'
 getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, filePathAndName=NULL) {
@@ -832,6 +832,77 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
   
   return(dfResponse)
 }
+
+#' getRunCounts summarizes raw run response into a data frame with year and count of runs >= specified # of days
+#' @param rawCounts run counts for a climate parameter (use getWxObservations() to generate)
+#' @param runLength number of run days used to filter raw run counts
+#' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
+#' @param filePathAndName (optional) File path and name including extension for output CSV file
+#' @return A data frame of stations, dates, and their run counts greater than or equal to the specified runLength
+#' @export
+#' 
+getRunCounts <-
+  function(rawCounts,
+           runLength,
+           metric = NULL,
+           filePathAndName = NULL) {
+    dfResponse0 <- NULL
+    idArray <-  NULL
+    dArray <- NULL
+    cArray <- NULL
+    metricArray <- NULL
+    
+    # Get date vector from rawCounts
+    dates <- as.Date(rawCounts$date, "%Y")
+    countDuration <- unique(format(dates, "%Y"))
+    yearCount <- length(countDuration)
+    stationCount <- length(unique(rawCounts$uid))
+    rowCount <- yearCount * stationCount
+    
+    idArray <- vector(mode = "integer", length = rowCount)
+    dArray <- vector(mode = "character", length = rowCount)
+    cArray <- vector(mode = "integer", length = rowCount)
+    metricArray <- rep(metric, rowCount)
+    k <- 1
+    
+    for (i in 1:yearCount) {
+      # Get rows with those dates (year)
+      toCount <-
+        subset(rawCounts, rawCounts$date == countDuration[i])
+      for (j in 1:length(unique(toCount$uid))) {
+        # Get data for each station for year
+        byStation <- subset(toCount, uid == unique(toCount$uid)[j])
+        # Count total greater than or equal to runLength
+        countTotal <- length(csp3check$pcpn_in_run[k][[1]][,1][as.numeric(csp3check$pcpn_in_run[58][[1]][,1]) >= 7])
+        idArray[k] <- byStation$uid[1] 
+        dArray[k] <- byStation$date[1]  
+        cArray[k] <- countTotal
+        # Set array index
+        k <- k + 1
+      }
+      toCount <- NULL
+    }
+    dfResponse0 <- cbind(idArray, dArray, cArray, metricArray)
+    dfResponse <- as.data.frame(dfResponse0)
+    cntName <- paste("cntGERunLength",str(runLength), sep = "_")
+    colnames(dfResponse)[1] <- "uid"
+    colnames(dfResponse)[2] <- "date"
+    colnames(dfResponse)[3] <- cntName
+    colnames(dfResponse)[4] <- "metric"
+    
+    # Output file
+    if (!is.null(filePathAndName)) {
+      write.table(
+        dfResponse,
+        file = filePathAndName,
+        sep = ",",
+        row.names = FALSE,
+        qmethod = "double"
+      )
+    }
+    
+    return(dfResponse)
+  }
 
 #' getStationMetrics requests Environmental Setting protocol metrics for a set of stations
 #' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
