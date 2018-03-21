@@ -19,7 +19,7 @@ findStation(unitCode, distance = NULL, climateParameters = NULL,
 \item{customBBox}{(optional) String containing bounding box geographic coordinates (longitude,latitude) using the WGS84 datum in the following format: Lower Left Longitude, Lower Left Latitude, Upper Right Longitude, Upper Right Latitude. Note: longitude is negative in the western hemisphere. Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"}
 }
 \value{
-A data frame containing station information for stations near the specified park. See User Guide for more details:  \url{}
+A data frame containing station information for stations near the specified park. See User Guide for more details:  \url{https://docs.google.com/document/d/1RKZ2ODNqmb0mYldFu1GivEdGwkDT9WwMEGe73vzmwQE}
 }
 \description{
 Uses NOAA Regional Climate Centers' Applied Climate Information System (ACIS) web services \url{http://www.rcc-acis.org/docs_webservices.html}. ACIS overview: \url{http://www.rcc-acis.org/index.html}  ACIS journal reference: \url{https://doi.org/10.1175/BAMS-D-13-00032.1}

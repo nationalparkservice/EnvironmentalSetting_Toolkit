@@ -18,6 +18,8 @@ formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
 
 \item{edate}{sdate (required) End date defined in calling source}
 
+\item{cUid}{(optional) station UID defined in calling source, used for getWXObservation requests}
+
 \item{duration}{(optional) station data duration specified in calling source; used for getWxObservations and getGrids requests}
 
 \item{interval}{(optional) time interval for results specified in calling source; used for getWxObservations and getGrids requests}
@@ -26,15 +28,13 @@ formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
 
 \item{reduceList}{(optional) used for getWxObservations (monthly). Defaults to min, max, sum, and mean.}
 
-\item{maxMissing}{(optional) used for getWxObservations (monthly). Defaults to 1 (~3.3% missing days/month).}
+\item{maxMissing}{(optional) used for getWxObservations (monthly). Defaults to 1 which is approx 3.3 missing days per month.}
 
 \item{normal}{(optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.}
 
 \item{gridElements}{grid request values defined in calling source}
-
-\item{cUID}{(optional) station UID defined in calling source, used for getWXObservation requests}
 }
 \description{
-formatRequest generates the JSON-formatted request to send to ACIS
+Requests are made via GET (findStation) or POST (getWxObservations, getGrids)
 }
 

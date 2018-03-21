@@ -36,16 +36,20 @@ getStationSubtype <- function(testType, testSid) {
 }
 
 #' formatRequest generates the JSON-formatted request to send to ACIS
+#' 
+#' Requests are made via GET (findStation) or POST (getWxObservations, getGrids)
+#' 
+#' 
 #' @param requestType type of request: getDailyWxObservations, getMonthlyWxObservations, getGrids, (findStation)
 #' @param climateParameters A list of one or more climate parameters defined in calling source
 #' @param sdate sdate (required) Start data defined in calling source
 #' @param edate sdate (required) End date defined in calling source
-#' @param cUID (optional) station UID defined in calling source, used for getWXObservation requests
+#' @param cUid (optional) station UID defined in calling source, used for getWXObservation requests
 #' @param duration (optional) station data duration specified in calling source; used for getWxObservations and getGrids requests
 #' @param interval (optional) time interval for results specified in calling source; used for getWxObservations and getGrids requests
 #' @param paramFlags (optional) used for getWxObservations (daily). Parameter flags: f = ACIS flag, s = source flag
 #' @param reduceList (optional) used for getWxObservations (monthly). Defaults to min, max, sum, and mean.
-#' @param maxMissing (optional) used for getWxObservations (monthly). Defaults to 1 (~3.3% missing days/month).
+#' @param maxMissing (optional) used for getWxObservations (monthly). Defaults to 1 which is approx 3.3 missing days per month.
 #' @param normal (optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.
 #' @param gridElements grid request values defined in calling source
 #' @export
@@ -834,7 +838,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
 }
 
 #' getRunCounts summarizes raw run response into a data frame with year and count of runs >= specified # of days
-#' @param rawCounts run counts for a climate parameter (use getWxObservations() to generate)
+#' @param rawCounts run counts for a climate parameter (use getWxObservations() with a reduce code of 'run*' to generate)
 #' @param runLength number of run days used to filter raw run counts
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
@@ -906,7 +910,7 @@ getRunCounts <-
 
 #' getStationMetrics requests Environmental Setting protocol metrics for a set of stations
 #' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
-#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: http://www.rcc-acis.org/docs_webservices.html
+#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
 #' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
 #' @param filePathAndRootname File path and root name for output CSV files. Do not include extension.
@@ -1061,7 +1065,7 @@ getStationMetrics <-
         maxMissing = 10,
         metric = "CST8and9"
       )
-    CST8and9Data <- getDepartureCounts(rawDepartures = CST8and9Source, duration = "yly", metric = "CSP8and9")
+    CST8and9Data <- getDepartureCounts(rawDepartures = CST8and9Source, duration = "yly", metric = "CST8and9")
     outputMetricFile(CST8and9Data, "CST8and9",
                      filePathAndRootname)
     
@@ -1096,7 +1100,20 @@ getStationMetrics <-
                      filePathAndRootname)
     
     # Get CSP3: Micro-drought
-    #TBW
+    CSP3Source <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "run_le_0.01",
+        metric = "CSP3"
+      )
+    CSP3Data <- getRunCounts(rawCounts = CSP3Source, runLength = 7, metric = "CSP3")
+    outputMetricFile(CSP3Data, "CSP3",
+                     filePathAndRootname)
     
     # Get CSP4: Measurable snow days
     CSP4Data <-
@@ -1144,7 +1161,7 @@ getStationMetrics <-
                      filePathAndRootname)
     
     # Get CSP 7 and 8: Above and Below Normal Precipitation Days
-    CSP8and9Source <- 
+    CSP7and8Source <- 
       getWxObservations(
         climateStations = climateStations,
         climateParameters = list("pcpn"),
@@ -1156,8 +1173,8 @@ getStationMetrics <-
         maxMissing = 10,
         metric = "CSP7and8"
       )
-    CSP8and9Data <- getDepartureCounts(rawDepartures = CSP8and9Source, duration = "yly", metric = "CSP8and9")
-    outputMetricFile(CSP8and9Data, "CSP7and8",
+    CSP7and8Data <- getDepartureCounts(rawDepartures = CSP7and8Source, duration = "yly", metric = "CSP7and8")
+    outputMetricFile(CSP7and8Data, "CSP7and8",
                      filePathAndRootname)
     
     return("SUCCESS")

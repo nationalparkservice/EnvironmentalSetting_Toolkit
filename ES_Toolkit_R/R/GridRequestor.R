@@ -5,27 +5,31 @@
 #' @param sDate sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.
 #' @param eDate edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.
 #' @param distance (optional) Distance (in kilometers) to buffer park bounding box
-#' @param climateParameters (optional) A list of one or more daily, monthly, or yearly climate parameters (e.g. pcpn, mint, maxt, avgt or mly_pcpn, mly_mint, mly_maxt, mly_avgt or yly_pcpn, yly_mint, yly_maxt, yly_avgt).  If not specified, defaults to all parameters for the specified duration. See the ACIS Web Services page: http://www.rcc-acis.org/docs_webservices.html
+#' @param climateParameters (optional) A list of one or more daily, monthly, or yearly climate parameters (e.g. pcpn, mint, maxt, avgt or mly_pcpn, mly_mint, mly_maxt, mly_avgt or yly_pcpn, yly_mint, yly_maxt, yly_avgt).  If not specified, defaults to all parameters for the specified duration. See the ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param duration (optional)  "dly" | "mly" | "yly" (i.e, daily, monthly, or yearly). If not specified, defaults to dly.
+#' @param gridDescription (optional) "PRISM" is the default. For all options, see Table 6 on the ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param filePath filePath (optional) Folder path for output ASCII grid(s). If specified, grid(s) are saved to the folder. Otherwise, grid(s) are saved to an in-memory raster stack (by date).
 #' @return ASCII-formatted grid file for each parameter for each date or an in-memory raster stack with a layer for each parameter for each date
 #' @examples \dontrun{
-#' Two daily grids for GRSM for one date: print output to console
+#' Two daily PRISM grids (default grid source) for GRSM for one date: print output to console
 #' getGrids(unitCode = list("GRSM"), sdate = "20160615", edate = "20160616", climateParameters = list("mint", "maxt"), duration = "dly")
 #' 
-#' Two monthly grids for PRWI for one date: returns one grid for each parameter for each date - 4 grids total
+#' Two daily NRCC Interpolated grids for GRSM for one date: print output to console
+#' getGrids(unitCode = list("GRSM"), sdate = "20160615", edate = "20160616", climateParameters = list("mint", "maxt"), duration = "dly", gridDescription = "NRCC Interpolated")
+#' 
+#' Two monthly PRISM grids for PRWI for one date: returns one grid for each parameter for each date - 4 grids total
 #' getGrids(unitCode = list("PRWI"), sdate = "201606", edate = "201607", duration = "mly", climateParameters = list("mly_mint", "mly_maxt"), filePath="d:\\temp\\trash")
 #'
-#' Two monthly grids for GRSM for one date: print output to console
+#' Two monthly PRISM grids for GRSM for one date: print output to console
 #' getGrids(unitCode = list("GRSM"), sdate = "20160615", edate = "20160616", climateParameters = list("mly_mint", "mly_maxt"), duration = "mly")
 #' 
-#' The same request for two monthly grids for GRSM for one date: output to in-memory raster stack, t
+#' The same request for two monthly PRISM grids for GRSM for one date: output to in-memory raster stack, t
 #' t <- getGrids(unitCode = list("GRSM"), sdate = "201606", edate = "201607", duration = "mly", climateParameters = list("mly_mint", "mly_maxt"))
 #' 
-#' Get all monthly grids for one year for one parameter
+#' Get all monthly PRISM grids for one year for one parameter
 #' getGrids(unitCode = list("GRKO"), sdate = "190001", edate = "190012", duration = "mly", climateParameters = list("mly_mint"))
 #' 
-#' Get yearly grids for three years for all parameters
+#' Get yearly PRISM grids for three years for all parameters
 #' getGrids(unitCode = list("SHEN"), sdate = "2013", edate = "2016", duration = "yly")
 #' }
 #' @export
@@ -37,6 +41,7 @@ getGrids <-
             distance = NULL,
             climateParameters = NULL,
             duration = "dly",
+            gridDescription = "PRISM",
             filePath = NULL) {
     # URLs and request parameters:
     # ACIS data services
@@ -67,7 +72,7 @@ getGrids <-
       list(
         #interval = "dly",
         duration = duration,
-        gridSource = "PRISM",
+        gridSource = gridDescription,
         dataPrecision = 1,
         output = "json",
         meta = "ll"
