@@ -774,6 +774,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
   bArray <- NULL
   dArray <- NULL
   idArray <- NULL
+  nArray <- NULL
   metricArray <- NULL
   
   # Get date vector from rawDepartures
@@ -788,6 +789,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
   aArray <- vector(mode = "integer", length = rowCount)
   bArray <- vector(mode = "integer", length = rowCount)
   idArray <- vector(mode = "integer", length = rowCount)
+  nArray <- vector(mode = "character", length = rowCount)
   dArray <- vector(mode = "character", length = rowCount)
   metricArray <- rep(metric, rowCount)
   k <- 1
@@ -807,6 +809,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
         below <- nrow(subset(byStation, pcpn_departure_in < 0))
       }
       idArray[k] <- byStation$uid[1] # rawDepartures$uid[i]
+      nArray[k] <- byStation$name[1]
       dArray[k] <- format(byStation$date[1],"%Y")  #format(rawDepartures$date[i],"%Y")
       aArray[k] <- above
       bArray[k] <- below
@@ -815,13 +818,14 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
     }
     toCount <- NULL
   }
-  dfResponse0 <- cbind(idArray, dArray, aArray, bArray, metricArray)
+  dfResponse0 <- cbind(idArray, nArray, dArray, aArray, bArray, metricArray)
   dfResponse <- as.data.frame(dfResponse0)
   colnames(dfResponse)[1] <- "uid"
-  colnames(dfResponse)[2] <- "date"
-  colnames(dfResponse)[3] <- "cntAboveNormal"
-  colnames(dfResponse)[4] <- "cntBelowNormal"
-  colnames(dfResponse)[5] <- "metric"
+  colnames(dfResponse)[2] <- "name"
+  colnames(dfResponse)[3] <- "date"
+  colnames(dfResponse)[4] <- "cntAboveNormal"
+  colnames(dfResponse)[5] <- "cntBelowNormal"
+  colnames(dfResponse)[6] <- "metric"
   
   # Output file
   if (!is.null(filePathAndName)) {
@@ -852,6 +856,7 @@ getRunCounts <-
            filePathAndName = NULL) {
     dfResponse0 <- NULL
     idArray <-  NULL
+    nArray <- NULL
     dArray <- NULL
     cArray <- NULL
     metricArray <- NULL
@@ -864,6 +869,7 @@ getRunCounts <-
     rowCount <- yearCount * stationCount
     
     idArray <- vector(mode = "integer", length = rowCount)
+    nArray <- vector(mode = "character", length = rowCount)
     dArray <- vector(mode = "character", length = rowCount)
     cArray <- vector(mode = "integer", length = rowCount)
     metricArray <- rep(metric, rowCount)
@@ -875,10 +881,14 @@ getRunCounts <-
         subset(rawCounts, rawCounts$date == countDuration[i])
       for (j in 1:length(unique(toCount$uid))) {
         # Get data for each station for year
+        #print(unique(toCount$uid)[j])
         byStation <- subset(toCount, uid == unique(toCount$uid)[j])
         # Count total greater than or equal to runLength
-        countTotal <- length(csp3check$pcpn_in_run[k][[1]][,1][as.numeric(csp3check$pcpn_in_run[58][[1]][,1]) >= 7])
+        #length(csp3check$pcpn_in_run[14][[1]][,1][as.numeric(csp3check$pcpn_in_run[14][[1]][,1]) >= 7])
+        countTotal <- length(byStation$pcpn_in_run[1][[1]][,1][as.numeric(byStation$pcpn_in_run[1][[1]][,1]) >= 7])
+        
         idArray[k] <- byStation$uid[1] 
+        nArray[k] <- byStation$name[1]
         dArray[k] <- byStation$date[1]  
         cArray[k] <- countTotal
         # Set array index
@@ -886,13 +896,14 @@ getRunCounts <-
       }
       toCount <- NULL
     }
-    dfResponse0 <- cbind(idArray, dArray, cArray, metricArray)
+    dfResponse0 <- cbind(idArray, nArray, dArray, as.numeric(cArray), metricArray)
     dfResponse <- as.data.frame(dfResponse0)
-    cntName <- paste("cntGERunLength",str(runLength), sep = "_")
+    cntName <- paste("cntGERunLength",runLength, sep = "_")
     colnames(dfResponse)[1] <- "uid"
-    colnames(dfResponse)[2] <- "date"
-    colnames(dfResponse)[3] <- cntName
-    colnames(dfResponse)[4] <- "metric"
+    colnames(dfResponse)[2] <- "name"
+    colnames(dfResponse)[3] <- "date"
+    colnames(dfResponse)[4] <- cntName
+    colnames(dfResponse)[5] <- "metric"
     
     # Output file
     if (!is.null(filePathAndName)) {
