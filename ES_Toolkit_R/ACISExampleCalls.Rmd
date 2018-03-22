@@ -1,8 +1,7 @@
-
 ---
 title: "Environmental Setting Metrics - Example ACIS Calls"
 author: "Lisa Nelson - IMD"
-date: "February 15, 2018"
+date: "March 22, 2018"
 output: html_document
 highlight: haddock
 ---
@@ -10,40 +9,48 @@ highlight: haddock
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(EnvironmentalSettingToolkit)
+library(ggplot2)
 ```
 
-```{r include=FALSE, message=FALSE, warning=FALSE, error=FALSE}
-dataPlot <- function(plotDF,plotY,yLabel) {
+```{r include=FALSE, echo=TRUE, message=FALSE, warning=FALSE, error=FALSE}
+dataPlot <- function(plotDF, plotY, yLabel) {
   # Iterate observations, graphing a scatter plot for each station
-  plot.new()
-  par(pin=c(6,6))
-  par(mfrow = c(length(unique(plotDF$uid)), 1)) # All station graphs in one page column
-  par(mar = c(4.5, 4.5, 1.5, 1.5)) # Graph margins in lines
   for (s in unique(plotDF$uid)) {
-    plot(
-      CST1Data$date[which(plotDF$uid == s)],
-      plotY[which(plotDF$uid == s)],
-      pch = 16,
-      col = "blue",
-      ylab = yLabel,
-      xlab = "date",
-      cex.main=0.8,
-      main = plotDF$name[which(plotDF$uid == s)][1]
-    )
+  ggplot(data = plotDF, aes(x = plotDF$date[which(plotDF$uid == s)], y = plotY[which(plotDF$uid == s)])) + geom_line() + geom_point() + 
+      labs(x = "Year",
+      y = yLabel,
+      title = plotDF$name[which(plotDF$uid == s)][1])
   }
+  # plot.new()
+  # par(pin=c(6,6))
+  # par(mfrow = c(length(unique(plotDF$uid)), 1)) # All station graphs in one page column
+  # par(mar = c(4.5, 4.5, 1.5, 1.5)) # Graph margins in lines
+  # for (s in unique(plotDF$uid)) {
+  #   plot(
+  #     CST1Data$date[which(plotDF$uid == s)],
+  #     plotY[which(plotDF$uid == s)],
+  #     pch = 16,
+  #     col = "blue",
+  #     ylab = yLabel,
+  #     xlab = "date",
+  #     cex.main=0.8,
+  #     main = plotDF$name[which(plotDF$uid == s)][1]
+  #   )
+  # }
 }
 ```
-The protocol calculates four types of climate metrics. 
+The draft Environmental Setting protocol calculates four types of climate metrics. 
 
 * station-based temperature and precipitation
 * station-based departures from normal temperature and precipitation
 * grid-based departures from normal temperature and precipitation
 * index-based precipitation and drought
 
-The first two metric types are calculated for all stations within the 12-digit hydrologic units (HUC) that intersect parks while the latter two metric types are calculated by area of analysis (AOA) exent.
+The first two metric types are calculated for all stations that intersect the 30km areas of analysis for parks while the latter two metric types are calculated by area of analysis (AOA) bounding box extent.
 
 ```{r results = "asis", echo=FALSE}
 metrics <- read.csv("inst/ESParameters.csv")[ ,1:2]
+
 knitr::kable(metrics, type = "html")
 ```
 
@@ -51,73 +58,133 @@ knitr::kable(metrics, type = "html")
 Examples shown are for stations within 20km of Agate Fossil Beds National Monument (AGFO). These are raw data that include missing values. Note not all station-based metrics are shown.
 ``` {r message=FALSE, warning=FALSE, error=FALSE}
 # Get stations collecting maxt, mint, and gdd with data from last 20 years
-testStations <- findStation(unitCode = "AGFO", distance = 20, climateParameters = list("maxt","mint","gdd"))
-currentStations <- testStations[testStations$maxDate >= "2018-02-10" & testStations$minDate >= "1998-02-10",]
-str(currentStations)
+agfoStations20km <- findStation(unitCode = "AGFO", distance = 20, climateParameters = list("maxt","mint","gdd"))
+agfoStationsCurrent <- agfoStations20km [agfoStations20km$minDate >= "1998-02-10" & agfoStations20km$maxDate >= "2018-02-10" ,]
+str(agfoStationsCurrent)
 
 ```
 
-Data requests are made with the getWxObservations() function. Plot are shown in this notebook but are not in the Toolkit functions.
+Data requests are made with the getWxObservations() function. Plots are shown in this notebook but are not included in the Toolkit functions.
 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST1: Hot Days (annual count)
-CST1Data <- getWxObservations(climateStations = unique(currentStations$uid), climateParameters = list("maxt"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_90")
+CST1Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("maxt"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_90", metric = "CST1")
 CST1Data$maxt_F_cnt_ge_90
 ```
-```{r echo=FALSE, dpi=96, fig.width=8, fig.height=7, message=FALSE, warning=FALSE, error=FALSE}
-# Iterate observations, graphing a scatter plot for each station
-plot.new()
-par(pin=c(6,6))
-par(mfrow=c(length(unique(CST1Data$uid)),1)) # All station graphs in one page column
-par(mar=c(4.5,4.5,1.5,1.5)) # Graph margins in lines
-for (s in unique(CST1Data$uid)) {
-  plot(CST1Data$date[which(CST1Data$uid == s)], CST1Data$maxt_F_cnt_ge_90[which(CST1Data$uid == s)], pch=16, col="blue", ylab="annual count (CST1)", xlab="date", cex.main=0.8, main=CST1Data$name[which(CST1Data$uid == s)][1])
-}
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+  ggplot(data = CST1Data, aes(x = CST1Data$date, y = CST1Data$maxt_F_cnt_ge_90, group=CST1Data$name, color=CST1Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST1Data$name) +
+      labs(x = "Year",
+      y = "max temp >= 90 (annual count)",
+      color = "Station",
+      title = CST1Data$name[1]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
 ```
+```{r dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+# dataPlot(CST1Data,CST1Data$maxt_F_cnt_ge_90,"max temp >= 90 (annual count)")
+
+```
+
 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST2: Cold Days (annual count)
-CST2Data <- getWxObservations(climateStations = unique(currentStations$uid), climateParameters = list("maxt"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_32")
+CST2Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("maxt"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_32", metric = "CST2")
 CST2Data$maxt_F_cnt_le_32
+```
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+  ggplot(data = CST2Data, aes(x = CST2Data$date, y = CST2Data$maxt_F_cnt_le_32, group=CST2Data$name, color=CST2Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST2Data$name) +
+      labs(x = "Year",
+      y = "max temp <= 32 (annual count)",
+      color = "Station",
+      title = CST2Data$name[1]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
 ```
 
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-dataPlot(CST2Data,CST2Data$maxt_F_cnt_le_32,"annual count (CST2)")
+#dataPlot(CST2Data,CST2Data$maxt_F_cnt_le_32,"annual count (CST2)")
 
 ```
 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST3: Sub-freezing Days
-CST3Data <- getWxObservations(climateStations = unique(currentStations$uid), climateParameters = list("mint"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_32")
+CST3Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("mint"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_32", metric = "CST3")
 CST3Data$mint_F_cnt_le_32
 ```
-
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-dataPlot(CST3Data,CST3Data$mint_F_cnt_le_32,"annual count (CST3)")
+  ggplot(data = CST3Data, aes(x = CST3Data$date, y = CST3Data$mint_F_cnt_le_32, group=CST3Data$name, color=CST3Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST3Data$name) +
+      labs(x = "Year",
+      y = "min temp <= 32 (annual count)",
+      color = "Station",
+      title = CST3Data$name[1]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+#dataPlot(CST3Data,CST3Data$mint_F_cnt_le_32,"annual count (CST3)")
 
 ```
 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST4: Days at or below 0 (annual count)
-CST4Data <- getWxObservations(climateStations = unique(currentStations$uid), climateParameters = list("mint"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_0")
+CST4Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("mint"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_0", metric = "CST4")
 CST4Data$mint_F_cnt_le_0
 ```
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+  ggplot(data = CST4Data, aes(x = CST4Data$date, y = CST4Data$mint_F_cnt_le_0, group=CST4Data$name, color=CST4Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST4Data$name) +
+      labs(x = "Year",
+      y = "min temp <= 0 (annual count)",
+      color = "Station",
+      title = CST4Data$name[1]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
+```
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST5: Growing degree days (base temperature >= 32) (annual count)
-CST5Data <- getWxObservations(climateStations = unique(currentStations$uid), climateParameters = list("gdd"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0")
-CST5Data$gdd__cnt_gt_0
+CST5Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("gdd32"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0", metric = "CST5")
+CST5Data$gdd32__cnt_gt_0
 
 ```
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+  ggplot(data = CST5Data, aes(x = CST5Data$date, y = CST5Data$gdd32__cnt_gt_0, group=CST5Data$name, color=CST5Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST5Data$name) +
+      labs(x = "Year",
+      y = "growing degree days (annual count)",
+      color = "Station",
+      title = CST5Data$name[1]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
+```
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST6: Heating degree days (default base temperature >= 65) (annual count)
-CST6Data <- getWxObservations(climateStations = unique(currentStations$uid), climateParameters = list("hdd"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0")
+CST6Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("hdd"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0", metric = "CST6")
 CST6Data$hdd__cnt_gt_0
 ```
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+  ggplot(data = CST6Data, aes(x = CST6Data$date, y = CST6Data$hdd__cnt_gt_0, group=CST6Data$name, color=CST6Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST6Data$name) +
+      labs(x = "Year",
+      y = "heating degree days (annual count)",
+      color = "Station",
+      title = CST6Data$name[1]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
+```
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST7: Cooling degree days (default base temperature >= 65) (annual count)
-CST7Data <- getWxObservations(climateStations = unique(currentStations$uid), climateParameters = list("cdd"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0")
+CST7Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("cdd"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0", metric = "CST7")
 CST7Data$cdd__cnt_gt_0
+```
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+  ggplot(data = CST7Data, aes(x = CST6Data$date, y = CST7Data$cdd__cnt_gt_0, group=CST7Data$name, color=CST7Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST6Data$name) +
+      labs(x = "Year",
+      y = "cooling degree days (annual count)",
+      color = "Station",
+      title = CST7Data$name[1]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+```{r message=FALSE, warning=FALSE, error=FALSE}
+# Get CST8 and 9: Annual count of days above/below 30-year climate normal (1981-2010)
+CST8and9Source <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("avgt"), sdate="1998-02-10", duration="dly", interval = "dly", normal="departure", metric = "CST8and9")
+CST8and9Data <- getDepartureCounts(rawDepartures = CST8and9Source, duration = "yly", metric = "CST8and9")
+CST8and9Data$cdd__cnt_gt_0
 ```
