@@ -1,16 +1,22 @@
 #' Get station data for specified parameter(s) and station(s)
 #'
+#' Using one or more stations (comma-delimied IDs or a list of IDs), requests weather observation data from NOAA Regional Climate Centers' Applied Climate Information System (ACIS) web services \url{http://www.rcc-acis.org/docs_webservices.html}. ACIS overview: \url{http://www.rcc-acis.org/index.html}  ACIS journal reference: \url{https://doi.org/10.1175/BAMS-D-13-00032.1}
+#' 
+#' 
 #' Takes a list of one or more parameters and one or more unique station IDs, requests station data, and returns it as a data frame. Note: For monthly data, value vectors returned as character format to accommodate missing records ("M")
 # @param dataURL URL for ACIS data service vending station data
 #' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
-#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: http://www.rcc-acis.org/docs_webservices.html
+#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd, gdd, hdd, cdd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
 #' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
-#' @param duration (optional) Default is daily ("dly"). Use "mly" for monthly.
-#' @param reduceCodes (optional) For monthly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean.
-#' @param maxMissing (optional) Maximum number of missing days within a month before the aggregate is not calculated (applied to each parameter). If missing, defaults to 1 (~3.3 percent missing days/month).
+#' @param duration (optional) Duration of summarization period. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must specify reduce_codes.
+#' @param interval (optional) Time step for results. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must match duration value.
+#' @param reduceCodes (optional) For monthly or yearly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean. See Table 2 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
+#' @param maxMissing (optional) Maximum number of missing days within a month before the aggregate is not calculated (applied to each parameter). If missing, defaults to 1 (~3.3 percent missing days/month) except for protocol metric growing degree day requests which use 999.
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
-#' @return A data frame containing the requested data. Note: date vector is in character format, not date format. See User Guide for more details: https://docs.google.com/document/d/1B0rf0VTEXQNWGW9fqg2LRr6cHR20VQhFRy7PU_BfOeA/
+#' @param normal (optional) 1 for the 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.
+#' @param metric (optional) A list of one or more climate metrics from the IMD Environmental Setting protocol
+#' @return A data frame containing the requested data. Note: date vector is in character format, not date format. See User Guide for more details: \url{https://docs.google.com/document/d/1RKZ2ODNqmb0mYldFu1GivEdGwkDT9WwMEGe73vzmwQE}
 #' @examples \dontrun{
 #' Precipitation, temperature (daily) weather observations for one station for a specifc date range:
 #'
@@ -44,21 +50,33 @@ getWxObservations <-
            sdate = "por",
            edate = "por",
            duration = "dly",
+           interval = "dly",
            reduceCodes = NULL,
            maxMissing = NULL,
-           filePathAndName = NULL) {
+           filePathAndName = NULL,
+           normal = NULL,
+           metric = NULL) {
     # URLs and request parameters:
     # ACIS data services
     baseURL <- "http://data.rcc-acis.org/"
     webServiceSource <- "StnData"
     # Parameter flags: f = ACIS flag, s = source flag; only valid when requesting daily data
     #paramFlags <- c("f,s")
-    # Reduce flags: mcnt = count of missing values in the reduction period
-    reduceFlags <- c("mcnt")
+    # Reduce flags: mcnt = count of missing values in the reduction period; add date and run count missing for run summaries and limit to one value (count) 
+    if (length(grep("run", reduceCodes)) > 0) {
+      reduceFlags <- c("mcnt","date")
+      reduceLimit <- 1
+    }
+    else {
+      if (is.null(normal)) reduceFlags <- c("mcnt")
+    }
     reduceList <- NULL
     # Interval and duration (TODO: add interval as function param in v1.7)
     if (!is.null(duration)) {
       interval <- duration
+    }
+    if (!is.null(interval)) {
+      interval <- interval    
     }
     else {
       interval <- c("dly")
@@ -78,19 +96,28 @@ getWxObservations <-
       climateParameters <- climateParameters0[1:7]
       #climateParameters <- list('pcpn', 'mint', 'maxt', 'avgt', 'obst', 'snow', 'snwd')
     }
-    if (duration == "mly" || duration == "yly") {
+    if ((duration == "mly" || duration == "yly") || (interval == "mly" || interval == "yly")) {
       # If reduceCodes is NULL, default to min, max, sum, and mean.
-      if (is.null(reduceCodes)) {
+      if (is.null(reduceCodes) && is.null(normal)) {
         reduceCodes <- list('min', 'max', 'sum', 'mean')
       }
-      reduceList <- vector('list', length(reduceCodes))
-      for (j in 1:length(reduceCodes)) {
-        r <- list(reduce = unlist(reduceCodes[j]), add = reduceFlags)
-        reduceList[[j]] <- r #unlist(c(r))
+      if (is.null(normal)) {
+        reduceList <- vector('list', length(reduceCodes))
+        
+        for (j in 1:length(reduceCodes)) {
+          r <- list(reduce = unlist(reduceCodes[j]), add = reduceFlags)
+          reduceList[[j]] <- r #unlist(c(r))
+        }
       }
       # If maxMissing is NULL, default to 1 (~3.3% missing days/month).
       if (is.null(maxMissing)) {
-        maxMissing <- 1
+        if (length(grep("cnt", reduceCodes)) > 0) {
+          # 'Force' return of cnt and mcnt
+          maxMissing <- 999
+        }
+        else {
+          maxMissing <- 1
+        }
       }
     }
     
@@ -115,7 +142,7 @@ getWxObservations <-
     for (s in 1:length(listStations)) {
       df <- NULL
       cUid <- unlist(listStations[s])
-      body <- formatRequest(requestType = "getWxObservations", climateParameters = climateParameters, sdate, edate, cUid, duration = duration, reduceList = reduceList, maxMissing = maxMissing)
+      body <- formatRequest(requestType = "getWxObservations", climateParameters = climateParameters, sdate, edate, cUid, duration = duration, interval = interval, reduceList = reduceList, maxMissing = maxMissing, normal = normal)
       
       # This returns the full response - need to use content() and parse
       # content(dataResponseInit) results in a list lacking column names but containing data which needs to be
@@ -143,7 +170,9 @@ getWxObservations <-
               duration = duration,
               climateParameters = climateParameters,
               reduceCodes = reduceCodes,
-              luElements = luElements
+              luElements = luElements,
+              normal = normal,
+              metric = metric 
             )
           # Create output object
           if (is.data.frame(dfResponse)) {

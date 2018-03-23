@@ -36,20 +36,26 @@ getStationSubtype <- function(testType, testSid) {
 }
 
 #' formatRequest generates the JSON-formatted request to send to ACIS
+#' 
+#' Requests are made via GET (findStation) or POST (getWxObservations, getGrids)
+#' 
+#' 
 #' @param requestType type of request: getDailyWxObservations, getMonthlyWxObservations, getGrids, (findStation)
 #' @param climateParameters A list of one or more climate parameters defined in calling source
 #' @param sdate sdate (required) Start data defined in calling source
 #' @param edate sdate (required) End date defined in calling source
-#' @param cUID (optional) station UID defined in calling source, used for getWXObservation requests
+#' @param cUid (optional) station UID defined in calling source, used for getWXObservation requests
 #' @param duration (optional) station data duration specified in calling source; used for getWxObservations and getGrids requests
+#' @param interval (optional) time interval for results specified in calling source; used for getWxObservations and getGrids requests
 #' @param paramFlags (optional) used for getWxObservations (daily). Parameter flags: f = ACIS flag, s = source flag
 #' @param reduceList (optional) used for getWxObservations (monthly). Defaults to min, max, sum, and mean.
-#' @param maxMissing (optional) used for getWxObservations (monthly). Defaults to 1 (~3.3% missing days/month).
+#' @param maxMissing (optional) used for getWxObservations (monthly). Defaults to 1 which is approx 3.3 missing days per month.
+#' @param normal (optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.
 #' @param gridElements grid request values defined in calling source
 #' @export
 #' 
-formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NULL, duration=NULL, paramFlags=NULL, reduceList=NULL, maxMissing=NULL, gridElements=NULL) {
-  print(requestType)
+formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NULL, duration=NULL, interval=NULL, paramFlags=NULL, reduceList=NULL, maxMissing=NULL, normal=NULL, gridElements=NULL) {
+  #print(requestType)
   
   # Hard-coded request elements
   # Parameter flags: f = ACIS flag, s = source flag
@@ -69,10 +75,13 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
   #   )
   # gridElements <- c(gridElements, grid = luElements[[1]]$code)
   # Reduce flags: mcnt = count of missing values in the reduction period
-  reduceFlags <- c("mcnt")
+  #reduceFlags <- c("mcnt")
   paramCount <- length(climateParameters)
   if (!is.null(reduceList)) {
     reduceCount <- length(reduceList)
+  }
+  if (length(grep("gdd", climateParameters)) > 0) {
+    gddBase <- 32
   }
   # List of elements
   eList <- NULL
@@ -80,34 +89,117 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
   # Build request
   if (requestType == "getWxObservations") {
     # Build elems list
-    if (duration == "mly" || duration == "yly") {
-      eList <- vector('list', paramCount*reduceCount)
+    if ((duration == "mly" || duration == "yly") || (interval == "mly" || interval == "yly")) {
+      if(is.null(normal)) eList <- vector('list', paramCount*reduceCount)
+      else eList <- vector('list', paramCount)
       counter <- 1
       # Iterate parameter list to create elems element:
       for (i in 1:paramCount) {
-        for (j in 1:reduceCount) { #listJ, listI
-          e <-
-            list(
-              name = unlist(c(climateParameters[i])),
-              interval = duration, #"dly",#interval,
-              duration = duration,
-              reduce = c(reduceList[j]), 
-              maxmissing = maxMissing #unlist(mmElem)
-            )
-          eList[[counter]] <- e
-          counter <- counter + 1
+        if (is.null(normal)) {
+          for (j in 1:reduceCount) {
+            #listJ, listI
+            if (is.null(interval)) {
+              if (length(grep("gdd", climateParameters)) > 0) {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    base = gddBase,
+                    interval = duration,
+                    #"dly",#interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
+              else {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    interval = duration,
+                    #"dly",#interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
+            }
+            else {
+              if (length(grep("gdd", climateParameters)) > 0) {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    base = gddBase,
+                    interval = interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
+              else {
+                e <-
+                  list(
+                    name = unlist(c(climateParameters[i])),
+                    interval = interval,
+                    duration = duration,
+                    reduce = c(reduceList[j]),
+                    maxmissing = maxMissing #unlist(mmElem)
+                  )
+              }
+            }
+            eList[[counter]] <- e
+            counter <- counter + 1
+          }
         }
-      }
-    }
+        else {
+          if (is.null(interval)) {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  interval = duration,
+                  duration = duration,
+                  normal = normal
+                  #maxmissing = maxMissing #unlist(mmElem)
+                )
+              eList[[i]] <- e
+            }
+            else {
+              e <-
+                list(
+                  name = unlist(c(climateParameters[i])),
+                  interval = interval,
+                  duration = duration,
+                  normal = normal
+                  #maxmissing = maxMissing #unlist(mmElem)
+                )
+              eList[[i]] <- e
+            }
+          }
+        }
+      } # mly or yly
     else {
       eList <- vector('list', paramCount)
       # Iterate parameter list to create elems element:
+      
       for (i in 1:paramCount) {
-        e <- list(name = unlist(c(climateParameters[i])), add = paramFlags)
-        #print(e)
-        eList[[i]] <- e
+        if (is.null(normal)) {
+          e <- list(name = unlist(c(climateParameters[i])), add = paramFlags)
+          #print(e)
+          eList[[i]] <- e
+        }
+        else {
+          e <-
+            list(
+              name = unlist(c(climateParameters[i])),
+              interval = interval,
+              duration = duration,
+              normal = normal
+              #maxmissing = maxMissing #unlist(mmElem)
+            )
+          eList[[i]] <- e
+        }
       }
     }
+
     # Climate parameters as JSON with flags
     elems <- toJSON(eList, auto_unbox = TRUE)
     # Build body (bList)
@@ -126,13 +218,24 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
     # Iterate parameter list to create elems element:
     eList <- vector('list', paramCount)
     for (i in 1:paramCount) {
-      e <-
-        list(
-          name = unlist(c(climateParameters[i])),
-          #interval = gridElements$interval,
-          duration = gridElements$duration,
-          prec = gridElements$dataPrecision
-        )
+      if (is.null(interval)) {
+        e <-
+          list(
+            name = unlist(c(climateParameters[i])),
+            #interval = gridElements$interval,
+            duration = gridElements$duration,
+            prec = gridElements$dataPrecision
+          )
+      }
+      else {
+        e <-
+          list(
+            name = unlist(c(climateParameters[i])),
+            interval = gridElements$interval,
+            duration = gridElements$duration,
+            prec = gridElements$dataPrecision
+          ) 
+      }
       #print(e)
       eList[[i]] <- e
     }
@@ -163,9 +266,11 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
 #' @param climateParameters A list of one or more climate parameters defined in calling source
 #' @param reduceCodes A list of one or more reduce codes defined in calling source
 #' @param luElements lookup values defined in calling source
+#' @param metric (optional) Metric code for IMD Environmental
+#' @param normal (optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.
 #' @export
 #'
-formatWxObservations  <- function(rList, duration, climateParameters, reduceCodes, luElements) {
+formatWxObservations  <- function(rList, duration, climateParameters, reduceCodes, luElements, normal, metric) {
   # Initialize return object (table or dataFrame)
   df <- NULL
   dfResponse <- NULL
@@ -351,7 +456,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
   rangeBase <- length(rList$data[[1]]) - 1
   #if(duration == 'dly') {range <- rangeBase - 1}
   #else {range <- rangeBase}
-  print(rangeBase)
+  #print(rangeBase)
   itemCount <- 1
   #for (i in 2:(length(rList$data[[1]])) - 1)  {
   for (i in 1:rangeBase)  {  
@@ -360,42 +465,135 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
       luElements[which(luElements$code == climateParameters[i]),]$unitabbr
     
     if(duration == 'dly') {
-      vName <- paste(climateParameters[i], vUnit, sep = "_")
       fName <- paste(climateParameters[i], "acis_flag", sep = "_")
-      valueArray <-
-        matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 1]
-      flagArray <-
-        matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 2]
-      sName <-
-        paste(climateParameters[i], "source_flag", sep = "_")
-      sourceFlagArray <-
-        matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 3]
-      df[[vName]] <- as.numeric(valueArray)
-      df[[fName]] <-
-        as.character(replace(flagArray, flagArray == " ", NA))
-      df[[sName]] <-
-        as.character(replace(sourceFlagArray, sourceFlagArray == " ", NA))
+      if (is.null(normal)) {
+        vName <- paste(climateParameters[i], vUnit, sep = "_")
+        valueArray <-
+          matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 1]
+        flagArray <-
+          matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 2]
+        sName <-
+          paste(climateParameters[i], "source_flag", sep = "_")
+        sourceFlagArray <-
+          matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 3, byrow = TRUE)[, 3]
+        df[[vName]] <- as.numeric(valueArray)
+        df[[fName]] <-
+          as.character(replace(flagArray, flagArray == " ", NA))
+        df[[sName]] <-
+          as.character(replace(sourceFlagArray, sourceFlagArray == " ", NA))
+      }
+      else {
+        if (normal == 1)
+          vValue = paste("normal", vUnit, sep = "_")
+        else
+          vValue = paste("departure", vUnit, sep = "_")
+        vName <- paste(climateParameters[i], vValue, sep = "_")
+        valueArray <-
+          unlist(lapply(matrix(
+            lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE
+          )[, 1], "[", 1))
+        
+        df[[vName]] <- as.numeric(valueArray)
+        itemCount <- itemCount + 1
+      }
     }
-    else { 
-      for (j in 1:length(reduceCodes)) {
-        vReduce <- unlist(reduceCodes[j])
-        vName <- paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
-        fName <- paste(vName, "countMissing", sep = "_")
-        #valueArray <-
-        #  matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 2, byrow = TRUE)[, 1]
-        #if (itemCount<=(rangeBase-1)) {
-        if (itemCount<=rangeBase) {
-          valueArray <-
-            matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 1]
-          flagArray <-
-            matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 2]
-          # For monthly data, value vector returned as character to accommodate missing records ("M")
-          df[[vName]] <- valueArray#as.numeric(valueArray)
-          df[[fName]] <-
-            as.character(replace(flagArray, flagArray == " ", NA))
-          itemCount <- itemCount + 1
+    else { #mly or yly
+      if (is.null(normal)) {
+        for (j in 1:length(reduceCodes)) {
+          vReduce <- unlist(reduceCodes[j])
+          if (length(grep("run", reduceCodes[j])) > 0) {
+            rName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"), "run", sep = "_")
+            yName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"),
+                    "runYear",
+                    sep = "_")
+            vName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
+            dName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"),
+                    "runEndDate",
+                    sep = "_")
+            fName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"),
+                    "countMissing",
+                    sep = "_")
+          }
+          else {
+            vName <-
+              paste(paste(climateParameters[i], vUnit, sep = "_"), vReduce, sep = "_")
+            fName <- paste(vName, "countMissing", sep = "_")
+            #valueArray <-
+            #  matrix(unlist(lapply(rList$data, "[", i + 1)), ncol = 2, byrow = TRUE)[, 1]
+          }
+          #if (itemCount<=(rangeBase-1)) {
+          if (itemCount <= rangeBase) {
+            if (length(grep("run", reduceCodes)) > 0) {
+              for (k in 1:length(lapply(rList$data, "[[", 1))) {
+                # For each run year, compose run count and date columns
+                yearArray <-
+                  matrix(lapply(rList$data, "[[", 1)[[k]][[1]][[1]], ncol = 1)[, 1]
+                #unlist(matrix(lapply(rList$data, "[[", 1), ncol = 1, byrow = TRUE)[,1])
+                #matrix(lapply(rList$data, "[[", 1)[[1]][[1]][[itemCount]], ncol = 1)[,1]
+                valueArray <-
+                  unlist(lapply(matrix(
+                    lapply(rList$data, "[[", 2)[[k]][[1]],
+                    ncol = 1,
+                    byrow = TRUE
+                  )[, 1], "[", 1))
+                dateArray <-
+                  unlist(lapply(matrix(
+                    lapply(rList$data, "[[", 2)[[k]][[1]],
+                    ncol = 1,
+                    byrow = TRUE
+                  )[, 1], "[", 2))
+                missingArray <-
+                  matrix(lapply(rList$data, "[[", 2)[[k]], ncol = 1)[, 1][2]
+                #unlist(sapply(matrix(lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE)[,1], "[", 2))
+                df[[yName]][k] <- yearArray
+                dfRun <-
+                  cbind(as.numeric(valueArray), dName = dateArray)
+                colnames(dfRun)[1] <- vName
+                colnames(dfRun)[2] <- dName
+                df[[rName]][k] <- list(dfRun)
+                colnames(df)[15] <- rName
+                # For missing count by year data, missing vector returned as character to accommodate missing records ("NA")
+                df[[fName]][k] <-
+                  as.character(replace(missingArray, missingArray == " ", NA))
+              }
+              itemCount <- itemCount + 1
+            }
+            else {
+              valueArray <-
+                matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 1]
+              flagArray <-
+                matrix(unlist(lapply(rList$data, "[", itemCount + 1)), ncol = 2, byrow = TRUE)[, 2]
+              # For monthly data, value vector returned as character to accommodate missing records ("M")
+              df[[vName]] <- as.numeric(valueArray)#valueArray#as.numeric(valueArray)
+              df[[fName]] <-
+                as.character(replace(flagArray, flagArray == " ", NA))
+              itemCount <- itemCount + 1
+            }
+          }
         }
       }
+      else { # !is.null(normal)
+        if (normal == 1)
+          vValue = paste("normal", vUnit, sep = "_")
+        else
+          vValue = paste("departure", vUnit, sep = "_")
+        vName <- paste(climateParameters[i], vValue, sep = "_")
+        valueArray <-
+          unlist(lapply(matrix(
+            lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE
+          )[, 1], "[", 1))
+        
+        df[[vName]] <- as.numeric(valueArray)
+        itemCount <- itemCount + 1
+      }
+    }
+    if(!is.null(metric)) {
+      df$metric <- metric
     }
   }
   
@@ -539,6 +737,476 @@ getUSHCN <- function (responseList) {
   return(hcnFlags)
 }
 
+#' getProtocolStations function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
+#' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
+#' @param dbName database name
+#' @param dbTable table name containing monitoring locations
+#' @return A list of station UIDs
+#' @export
+#'
+getProtocolStations <- function(dbInstance, dbName, dbTable) {
+  # Open database connection
+  #library(RODBC)
+  connString <- paste0("driver={SQL Server};server=",dbInstance,";database=",dbName,";uid=Report_Data_Reader;pwd=ReportDataUser")
+  dbConn <- odbcDriverConnect(connString)
+  
+  # Get station list
+  res <- sqlQuery(dbConn, paste0("select uid from ",dbTable))
+  
+  # Close connection
+  odbcClose(dbConn)
+  
+  # Return list
+  return(res)
+}
+
+#' getDepartureCounts function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
+#' @param rawDepartures Daily departures for a climate parameter (use getWxObservations() with normal="departure" to generate)
+#' @param duration Duration of summarization period. Default is yearly ("yly"). Use "mly" for monthly.
+#' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
+#' @param filePathAndName (optional) File path and name including extension for output CSV file
+#' @return A data frame of stations, dates, and their departure counts above or below the 30-year climate normal (1981-2010)
+#' @export
+#'
+getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, filePathAndName=NULL) {
+  dfResponse0 <- NULL
+  aArray <- NULL
+  bArray <- NULL
+  dArray <- NULL
+  idArray <- NULL
+  nArray <- NULL
+  metricArray <- NULL
+  
+  # Get date vector from rawDepartures
+  dates <- as.Date(rawDepartures$date, "%Y-%m-d")
+  
+  if (duration == "yly") countDuration <- unique(format(dates, "%Y"))
+  else countDuration <- unique(format(dates, "%Y-%m"))
+  # Initialize output vectors: length == # years * # stations
+  yearCount <- length(countDuration)
+  stationCount <- length(unique(rawDepartures$uid))
+  rowCount <- yearCount*stationCount
+  aArray <- vector(mode = "integer", length = rowCount)
+  bArray <- vector(mode = "integer", length = rowCount)
+  idArray <- vector(mode = "integer", length = rowCount)
+  nArray <- vector(mode = "character", length = rowCount)
+  dArray <- vector(mode = "character", length = rowCount)
+  metricArray <- rep(metric, rowCount)
+  k <- 1
+  for (i in 1:yearCount) {
+    # Get rows with those dates (year)
+    toCount <- subset(rawDepartures, format(rawDepartures$date,"%Y") == countDuration[i])
+    for (j in 1:length(unique(toCount$uid))) {
+      # Get data for each station for year
+      byStation <- subset(toCount, uid == unique(toCount$uid)[j])
+      # Count above normal (+) and below normal (-)
+      if ("avgt_departure_F" %in% colnames(byStation)) {
+        above <- nrow(subset(byStation, avgt_departure_F > 0))
+        below <- nrow(subset(byStation, avgt_departure_F < 0))
+      }
+      else {
+        above <- nrow(subset(byStation, pcpn_departure_in > 0))
+        below <- nrow(subset(byStation, pcpn_departure_in < 0))
+      }
+      idArray[k] <- byStation$uid[1] # rawDepartures$uid[i]
+      nArray[k] <- byStation$name[1]
+      dArray[k] <- format(byStation$date[1],"%Y")  #format(rawDepartures$date[i],"%Y")
+      aArray[k] <- above
+      bArray[k] <- below
+      # Set array index
+      k <- k+1
+    }
+    toCount <- NULL
+  }
+  dfResponse0 <- cbind(idArray, nArray, dArray, aArray, bArray, metricArray)
+  dfResponse <- as.data.frame(dfResponse0)
+  colnames(dfResponse)[1] <- "uid"
+  colnames(dfResponse)[2] <- "name"
+  colnames(dfResponse)[3] <- "date"
+  colnames(dfResponse)[4] <- "cntAboveNormal"
+  colnames(dfResponse)[5] <- "cntBelowNormal"
+  colnames(dfResponse)[6] <- "metric"
+  
+  # Output file
+  if (!is.null(filePathAndName)) {
+    write.table(
+      dfResponse,
+      file = filePathAndName,
+      sep = ",",
+      row.names = FALSE,
+      qmethod = "double"
+    )
+  }
+  
+  return(dfResponse)
+}
+
+#' getRunCounts summarizes raw run response into a data frame with year and count of runs >= specified # of days
+#' @param rawCounts run counts for a climate parameter (use getWxObservations() with a reduce code of 'run*' to generate)
+#' @param runLength number of run days used to filter raw run counts
+#' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
+#' @param filePathAndName (optional) File path and name including extension for output CSV file
+#' @return A data frame of stations, dates, and their run counts greater than or equal to the specified runLength
+#' @export
+#' 
+getRunCounts <-
+  function(rawCounts,
+           runLength,
+           metric = NULL,
+           filePathAndName = NULL) {
+    dfResponse0 <- NULL
+    idArray <-  NULL
+    nArray <- NULL
+    dArray <- NULL
+    cArray <- NULL
+    metricArray <- NULL
+    
+    # Get date vector from rawCounts
+    dates <- as.Date(rawCounts$date, "%Y")
+    countDuration <- unique(format(dates, "%Y"))
+    yearCount <- length(countDuration)
+    stationCount <- length(unique(rawCounts$uid))
+    rowCount <- yearCount * stationCount
+    
+    idArray <- vector(mode = "integer", length = rowCount)
+    nArray <- vector(mode = "character", length = rowCount)
+    dArray <- vector(mode = "character", length = rowCount)
+    cArray <- vector(mode = "integer", length = rowCount)
+    metricArray <- rep(metric, rowCount)
+    k <- 1
+    
+    for (i in 1:yearCount) {
+      # Get rows with those dates (year)
+      toCount <-
+        subset(rawCounts, rawCounts$date == countDuration[i])
+      for (j in 1:length(unique(toCount$uid))) {
+        # Get data for each station for year
+        #print(unique(toCount$uid)[j])
+        byStation <- subset(toCount, uid == unique(toCount$uid)[j])
+        # Count total greater than or equal to runLength
+        #length(csp3check$pcpn_in_run[14][[1]][,1][as.numeric(csp3check$pcpn_in_run[14][[1]][,1]) >= 7])
+        countTotal <- length(byStation$pcpn_in_run[1][[1]][,1][as.numeric(byStation$pcpn_in_run[1][[1]][,1]) >= 7])
+        
+        idArray[k] <- byStation$uid[1] 
+        nArray[k] <- byStation$name[1]
+        dArray[k] <- byStation$date[1]  
+        cArray[k] <- countTotal
+        # Set array index
+        k <- k + 1
+      }
+      toCount <- NULL
+    }
+    dfResponse0 <- cbind(idArray, nArray, dArray, as.numeric(cArray), metricArray)
+    dfResponse <- as.data.frame(dfResponse0)
+    cntName <- paste("cntGERunLength",runLength, sep = "_")
+    colnames(dfResponse)[1] <- "uid"
+    colnames(dfResponse)[2] <- "name"
+    colnames(dfResponse)[3] <- "date"
+    colnames(dfResponse)[4] <- cntName
+    colnames(dfResponse)[5] <- "metric"
+    
+    # Output file
+    if (!is.null(filePathAndName)) {
+      write.table(
+        dfResponse,
+        file = filePathAndName,
+        sep = ",",
+        row.names = FALSE,
+        qmethod = "double"
+      )
+    }
+    
+    return(dfResponse)
+  }
+
+#' getStationMetrics requests Environmental Setting protocol metrics for a set of stations
+#' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
+#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
+#' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
+#' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
+#' @param filePathAndRootname File path and root name for output CSV files. Do not include extension.
+#' @return CSV files by metric
+#' @examples \dontrun{
+#' }
+#' @export
+#'
+getStationMetrics <-
+  function(climateStations,
+           sdate = "por",
+           edate = "por",
+           filePathAndRootname) {
+    # Iterate list of parameters, creating output data frames (and optionally, CSV files), by metric
+    #acisLookup <-
+    #  fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit")) # assumes placement in package inst subfolder
+
+    # metricIdx <- grep('CS', acisLookup$climateMetrics$Metric)
+    # for (i in 1:length(metricIdx)) {
+    #   idx = metricIdx[[i]]
+    #   if (acisLookup$climateMetrics[idx, ]$Metric != "CST8") {
+    #     # do something
+    #   }
+    # }
+    # Re-factor to read from lookups
+    #metricListTemperature <- list("CST1","CST2","CST3","CST4","CST5","CST6","CST7")
+    #metricListPrecipitation <- list("CPT1","CPT2","CST3","CPT4","CPT5","CPT6")
+    # Get Temperature Metrics
+    # for (i in 1:length(metricListTemperature)) {
+    #   metric <- metricListTemperature[[i]]
+    #   reduceValue <- NULL
+    #   # Get reduce elements
+    #   #acisLookup$stationIdType$description[acisLookup$stationIdType$code == testType]
+    #   #reduceValue <- acisLookup$climateMetrics$Request[acisLookup$climateMetrics$Metric == metric]
+    #   # Call getWxObservations
+    # }
+    # Get CST1: Hot Days (annual count)
+    CST1Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("maxt"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_90",
+        metric = "CST1"
+      )
+    outputMetricFile(CST1Data, "CST1",
+                     filePathAndRootname)
+    
+    # Get CST2: Cold Days (annual count)
+    CST2Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("maxt"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_le_32",
+        metric = "CST2"
+      )
+    outputMetricFile(CST2Data, "CST2",
+                     filePathAndRootname)
+    
+    # Get CST3: Sub-freezing Days (annual count)
+    CST3Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("mint"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_le_32",
+        metric = "CST3"
+      )
+    outputMetricFile(CST3Data, "CST3",
+                     filePathAndRootname)
+    
+    # Get CST4: Days at or below 0 (annual count)
+    CST4Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("mint"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_le_0",
+        metric = "CST4"
+      )
+    outputMetricFile(CST4Data, "CST4",
+                     filePathAndRootname)
+    
+    # Get CST5: Growing degree days (base temperature >= 32) (annual count)
+    CST5Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("gdd32"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_gt_0",
+        metric = "CST5"
+      )
+    outputMetricFile(CST5Data, "CST5",
+                     filePathAndRootname)
+    
+    # Get CST6: Heating degree days (default base temperature >= 65) (annual count)
+    CST6Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("hdd"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_gt_0",
+        metric = "CST6"
+      )
+    outputMetricFile(CST6Data, "CST6",
+                     filePathAndRootname)
+    
+    # Get CST7: Cooling degree days (default base temperature >= 65) (annual count)
+    CST7Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("cdd"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_gt_0",
+        metric = "CST7"
+      )
+    outputMetricFile(CST7Data, "CST7",
+                     filePathAndRootname)
+    
+    # Get CST 8 and 9: Above and Below Normal Temperature Days
+    CST8and9Source <- 
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("avgt"),
+        sdate = sdate,
+        edate = edate,
+        duration = "dly",
+        interval = "dly",
+        normal = "departure",
+        maxMissing = 10,
+        metric = "CST8and9"
+      )
+    CST8and9Data <- getDepartureCounts(rawDepartures = CST8and9Source, duration = "yly", metric = "CST8and9")
+    outputMetricFile(CST8and9Data, "CST8and9",
+                     filePathAndRootname)
+    
+    # Get CSP1: Heavy precip days
+    CSP1Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_1.0",
+        metric = "CSP1"
+      )
+    outputMetricFile(CSP1Data, "CSP1",
+                     filePathAndRootname)
+    
+    #Get CSP2: Extreme precip days
+    CSP2Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_2.0",
+        metric = "CSP2"
+      )
+    outputMetricFile(CSP2Data, "CSP2",
+                     filePathAndRootname)
+    
+    # Get CSP3: Micro-drought
+    CSP3Source <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "run_le_0.01",
+        metric = "CSP3"
+      )
+    CSP3Data <- getRunCounts(rawCounts = CSP3Source, runLength = 7, metric = "CSP3")
+    outputMetricFile(CSP3Data, "CSP3",
+                     filePathAndRootname)
+    
+    # Get CSP4: Measurable snow days
+    CSP4Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("snow"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_0.1",
+        metric = "CSP4"
+      )
+    outputMetricFile(CSP4Data, "CSP4",
+                     filePathAndRootname)
+    
+    # Get CSP5: Moderate snow days
+    CSP5Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("snow"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_3.0",
+        metric = "CSP5"
+      )
+    outputMetricFile(CSP5Data, "CSP5",
+                     filePathAndRootname)
+    
+    # Get CSP6: Heavy snow days
+    CSP6Data <-
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("snow"),
+        sdate = sdate,
+        edate = edate,
+        duration = "yly",
+        interval = "yly",
+        reduceCodes = "cnt_ge_5.0",
+        metric = "CSP6"
+      )
+    outputMetricFile(CSP6Data, "CSP6",
+                     filePathAndRootname)
+    
+    # Get CSP 7 and 8: Above and Below Normal Precipitation Days
+    CSP7and8Source <- 
+      getWxObservations(
+        climateStations = climateStations,
+        climateParameters = list("pcpn"),
+        sdate = sdate,
+        edate = edate,
+        duration = "dly",
+        interval = "dly",
+        normal = "departure",
+        maxMissing = 10,
+        metric = "CSP7and8"
+      )
+    CSP7and8Data <- getDepartureCounts(rawDepartures = CSP7and8Source, duration = "yly", metric = "CSP7and8")
+    outputMetricFile(CSP7and8Data, "CSP7and8",
+                     filePathAndRootname)
+    
+    return("SUCCESS")
+    
+  }
+
+#' outputMetricFile writes metric data frames to a CSV file
+#' @param metricData
+#' @param metricName
+#' @param filePathAndRootName
+#'
+outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
+  outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_METRIC.csv"), sep = "")
+  write.table(
+    metricData,
+    file = outFile,
+    sep = ",",
+    row.names = FALSE,
+    qmethod = "double"
+  )
+}
 
 #' outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
 #' @param gridResponse grid (dataframe format) returned from ACIS request (by date)

@@ -1,7 +1,7 @@
 ---
-title: "ES Toolkit Examples"
+title: "ES Toolkit Examples: Heavy Precipitation (CSP1) and Growing Degree Days (CST3) Metrics"
 author: "Lisa Nelson - IMD"
-date: "February 12, 2018"
+date: "March 21, 2018"
 output: html_document
 highlight: haddock
 ---
@@ -9,11 +9,12 @@ highlight: haddock
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(EnvironmentalSettingToolkit)
+library(ggplot2)
 ```
 
 ## IMD Environmental Setting Toolkit
 
-The EnvironmentalSetting toolkit <https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit> accesses climate stations and observation data for areas around and within National Parks. These data are vended by webservices maintained by NOAA's Regional Climate Centers (RCCs) from a system called ACIS - Applied Climate Information System <http://www.rcc-acis.org/index.html>.
+The EnvironmentalSetting toolkit <https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit> accesses climate stations and observation data for areas around and within National Parks. These data are vended by webservices maintained by NOAA's Regional Climate Centers (RCCs) from a system called ACIS - Applied Climate Information System <http://www.rcc-acis.org/index.html>. This example shows raw data for two of the 52 climate metrics in the draft Environmental Setting protocol uses.
 
 Select a park, then decide which climate parameters to search.  The findStation function returns a data frame of station 'metadata', in this case for stations recording the growing degree day parameter within 10km of Shenandoah National Park:
 
@@ -26,33 +27,41 @@ head(findStation(unitCode = "SHEN", distance=10, climateParameters=list("gdd")))
 The set of stations can be used to request weather observations for a climate parameter, specifying only those stations that are U.S. Historical Climatology Network stations that collected data within the past week:
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE}
-# Get stations collecting growing degree day
-stationsSHEN <- (findStation(unitCode = "SHEN", distance=10, climateParameters=list("gdd")))
-# Subset HCN stations that collected data up to the first week of February 2018 
-hcnStationsSHEN <- stationsSHEN[stationsSHEN$isHCNStation == "Y" & stationsSHEN$maxDate >= "2018-02-10",]
-hcnStationsSHEN
+# Get stations collecting precipitation data
+stationsSHENCSP1 <- (findStation(unitCode = "SHEN", distance=10, climateParameters=list("pcpn")))
+# Subset HCN stations that collected data up to the first full week of March 2018 
+hcnStationsSHENCSP1 <- stationsSHENCSP1[stationsSHENCSP1$isHCNStation == "Y" & stationsSHENCSP1$maxDate >= "2018-03-10",]
+hcnStationsSHENCSP1[order(hcnStationsSHENCSP1$name)]
 ```
-This subset of stations (hcnStationsSHEN) is used to request the annual sum of growing degree days greater than 0.
+This subset of stations (hcnStationsSHENCSP1) is used to request the raw data for the annual count of precipitation events greater than or equal to 1.0 inch.
 ```{r message=FALSE, warning=FALSE, error=FALSE, echo=TRUE}
-# Get observations since 2000 - only head rows for brevity 
-head(getWxObservations(climateStations = hcnStationsSHEN, climateParameters = list("gdd"), duration="yly", reduceCodes = list("cnt_gt_0"), sdate = "2000-01-01"))
+# Get observations exceeding 1.0 inch of precipitation since 2000 - only head rows shown for brevity. 
+head(getWxObservations(climateStations = hcnStationsSHENCSP1, climateParameters = list("pcpn"), duration="yly", interval="yly", reduceCodes = list("cnt_ge_1.0"), sdate = "2000-01-01"))
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE}
+# Get stations collecting growing degree day data
+stationsSHENGDD <- (findStation(unitCode = "SHEN", distance=10, climateParameters=list("gdd")))
+# Subset HCN stations that collected data up to the first full week of March 2018 
+hcnStationsSHENGDD <- stationsSHENGDD[stationsSHENGDD$isHCNStation == "Y" & stationsSHENGDD$maxDate >= "2018-03-10",]
+hcnStationsSHENGDD[order(hcnStationsSHENGDD$name)]
+```
+This subset of stations (hcnStationsSHENGDD) is used to request the raw data for the annual count (sum) of growing degree days greater than 0.
+```{r message=FALSE, warning=FALSE, error=FALSE, echo=TRUE}
+# The protocol uses a base of 32 degrees for growing degree data. Get observations since 2000 - only head rows shown for brevity. 
+head(getWxObservations(climateStations = hcnStationsSHENGDD, climateParameters = list("gdd32"), duration="yly", interval="yly", reduceCodes = list("cnt_gt_0"), sdate = "2000-01-01"))
 ```
 ```{r echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
-obsData <- NULL
-obsData <- getWxObservations(climateStations = hcnStationsSHEN, climateParameters = list("gdd"), duration="yly", reduceCodes = list("cnt_gt_0"), sdate = "2000-01-01")
+obsDataCSP1 <- getWxObservations(climateStations = hcnStationsSHENCSP1, climateParameters = list("pcpn"), duration="yly", interval="yly", reduceCodes = list("cnt_ge_1.0"), sdate = "2000-01-01")
+
+obsDataGDD <- getWxObservations(climateStations = hcnStationsSHENGDD, climateParameters = list("gdd32"), duration="yly", interval="yly", reduceCodes = list("cnt_gt_0"), sdate = "2000-01-01")
 ```
 Note the Toolkit does not include graphs - these are included in this notebook to offer a quick visual check.  The last two stations have a longer time series for the gdd parameter for the specified date range. 
 
-```{r echo=FALSE, dpi=96, fig.width=8, fig.height=7, message=FALSE, warning=FALSE, error=FALSE}
-# Iterate observations, graphing a scatter plot for each station
-plot.new()
-par(mfrow=c(length(unique(obsData$uid)),1)) # All station graphs in one page column
-par(mar=c(4.5,4.5,1.5,1.5)) # Graph margins in lines
-for (s in unique(obsData$uid)) {
-  #par(mar=c(4.5,4.5,1.5,1.5))
-  # x = obsData$date[which(obsData$uid == s)]
-  # y = obsData$gdd__cnt_gt_0[which(obsData$uid == s)]
-  # m = obsData$name[which(obsData$uid == s)][1]
-  plot(obsData$date[which(obsData$uid == s)], obsData$gdd__cnt_gt_0[which(obsData$uid == s)], pch=16, col="blue", ylab="count (annual sum)", xlab="date", main=obsData$name[which(obsData$uid == s)][1])
-}
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+ggplot(data = obsDataCSP1, aes(x=obsDataCSP1$date, y=obsDataCSP1$pcpn_in_cnt_ge_1.0[order(obsDataCSP1$name)], group=sort(obsDataCSP1$name), color=sort(obsDataCSP1$name))) + geom_line() + geom_point() + labs(x = "Year", y = "# days with pcpn >= 1.0 inch", title = "CSP1: Heavy Precipitation (raw data)", color = "Station")
+```
+```{r echo=FALSE, dpi=96,  message=FALSE, warning=FALSE, error=FALSE}
+ggplot(data = obsDataGDD, aes(x=obsDataGDD$date, y=obsDataGDD$gdd32__cnt_gt_0[order(obsDataGDD$name)], group=sort(obsDataGDD$name), color=sort(obsDataGDD$name))) + geom_line() + geom_point() + labs(x = "Year", y = "# growing degree days (annual sum)", title = "CST6: Growing Degree Days - Annual Sum (raw data)", color = "Station")
+
 ```

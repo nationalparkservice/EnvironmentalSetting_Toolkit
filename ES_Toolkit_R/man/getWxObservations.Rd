@@ -5,30 +5,40 @@
 \title{Get station data for specified parameter(s) and station(s)}
 \usage{
 getWxObservations(climateStations, climateParameters = NULL, sdate = "por",
-  edate = "por", duration = "dly", reduceCodes = NULL,
-  maxMissing = NULL, filePathAndName = NULL)
+  edate = "por", duration = "dly", interval = "dly", reduceCodes = NULL,
+  maxMissing = NULL, filePathAndName = NULL, normal = NULL,
+  metric = NULL)
 }
 \arguments{
 \item{climateStations}{A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.}
 
-\item{climateParameters}{A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: http://www.rcc-acis.org/docs_webservices.html}
+\item{climateParameters}{A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd, gdd, hdd, cdd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
 
 \item{sdate}{(optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.}
 
 \item{edate}{(optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.}
 
-\item{duration}{(optional) Default is daily ("dly"). Use "mly" for monthly.}
+\item{duration}{(optional) Duration of summarization period. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must specify reduce_codes.}
 
-\item{reduceCodes}{(optional) For monthly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean.}
+\item{interval}{(optional) Time step for results. Default is daily ("dly"). Use "mly" for monthly or "yly" for yearly. If not "dly", must match duration value.}
 
-\item{maxMissing}{(optional) Maximum number of missing days within a month before the aggregate is not calculated (applied to each parameter). If missing, defaults to 1 (~3.3 percent missing days/month).}
+\item{reduceCodes}{(optional) For monthly or yearly requests, a list of one or more reduce codes. If missing, defaults to min, max, sum, and mean. See Table 2 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
+
+\item{maxMissing}{(optional) Maximum number of missing days within a month before the aggregate is not calculated (applied to each parameter). If missing, defaults to 1 (~3.3 percent missing days/month) except for protocol metric growing degree day requests which use 999.}
 
 \item{filePathAndName}{(optional) File path and name including extension for output CSV file}
+
+\item{normal}{(optional) 1 for the 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.}
+
+\item{metric}{(optional) A list of one or more climate metrics from the IMD Environmental Setting protocol}
 }
 \value{
-A data frame containing the requested data. Note: date vector is in character format, not date format. See User Guide for more details: https://docs.google.com/document/d/1B0rf0VTEXQNWGW9fqg2LRr6cHR20VQhFRy7PU_BfOeA/
+A data frame containing the requested data. Note: date vector is in character format, not date format. See User Guide for more details: \url{https://docs.google.com/document/d/1RKZ2ODNqmb0mYldFu1GivEdGwkDT9WwMEGe73vzmwQE}
 }
 \description{
+Using one or more stations (comma-delimied IDs or a list of IDs), requests weather observation data from NOAA Regional Climate Centers' Applied Climate Information System (ACIS) web services \url{http://www.rcc-acis.org/docs_webservices.html}. ACIS overview: \url{http://www.rcc-acis.org/index.html}  ACIS journal reference: \url{https://doi.org/10.1175/BAMS-D-13-00032.1}
+}
+\details{
 Takes a list of one or more parameters and one or more unique station IDs, requests station data, and returns it as a data frame. Note: For monthly data, value vectors returned as character format to accommodate missing records ("M")
 }
 \examples{
