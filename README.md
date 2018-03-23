@@ -22,7 +22,8 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 	Version 2.3 - August 2018
 		Generic capabilities: add DayMet/NASA NEX as sources, upload polygon
   
-#### Release 2.0 - Planned for March 2018 ####
+#### Release 2.0 - 20180322 ####
+[Release notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases)
 	
 #### Disclaimer ####
 This software is in the public domain because it contains materials from the U.S. National Park Service, an agency of the United States Department of Interior.
