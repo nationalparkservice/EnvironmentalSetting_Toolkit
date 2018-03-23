@@ -31,7 +31,7 @@ The set of stations can be used to request weather observations for a climate pa
 stationsSHENCSP1 <- (findStation(unitCode = "SHEN", distance=10, climateParameters=list("pcpn")))
 # Subset HCN stations that collected data up to the first full week of March 2018 
 hcnStationsSHENCSP1 <- stationsSHENCSP1[stationsSHENCSP1$isHCNStation == "Y" & stationsSHENCSP1$maxDate >= "2018-03-10",]
-hcnStationsSHENCSP1
+hcnStationsSHENCSP1[order(hcnStationsSHENCSP1$name)]
 ```
 This subset of stations (hcnStationsSHENCSP1) is used to request the raw data for the annual count of precipitation events greater than or equal to 1.0 inch.
 ```{r message=FALSE, warning=FALSE, error=FALSE, echo=TRUE}
@@ -44,7 +44,7 @@ head(getWxObservations(climateStations = hcnStationsSHENCSP1, climateParameters 
 stationsSHENGDD <- (findStation(unitCode = "SHEN", distance=10, climateParameters=list("gdd")))
 # Subset HCN stations that collected data up to the first full week of March 2018 
 hcnStationsSHENGDD <- stationsSHENGDD[stationsSHENGDD$isHCNStation == "Y" & stationsSHENGDD$maxDate >= "2018-03-10",]
-hcnStationsSHENGDD
+hcnStationsSHENGDD[order(hcnStationsSHENGDD$name)]
 ```
 This subset of stations (hcnStationsSHENGDD) is used to request the raw data for the annual count (sum) of growing degree days greater than 0.
 ```{r message=FALSE, warning=FALSE, error=FALSE, echo=TRUE}
@@ -58,9 +58,10 @@ obsDataGDD <- getWxObservations(climateStations = hcnStationsSHENGDD, climatePar
 ```
 Note the Toolkit does not include graphs - these are included in this notebook to offer a quick visual check.  The last two stations have a longer time series for the gdd parameter for the specified date range. 
 
-```{r echo=FALSE, dpi=96, fig.width=8, fig.height=7, message=FALSE, warning=FALSE, error=FALSE}
-ggplot(data = obsDataCSP1, aes(x=obsDataCSP1$date, y=obsDataCSP1$pcpn_in_cnt_ge_1.0, group=obsDataCSP1$name, color=obsDataCSP1$name)) + geom_line() + geom_point() + labs(x = "Year", y = "# days with pcpn >= 1.0 inch", title = "CSP1: Heavy Precipitation (raw data)", color = "Station")
-
-ggplot(data = obsDataGDD[1:75], aes(x=obsDataGDD$date[1:75], y=obsDataGDD$gdd32__cnt_gt_0[1:75], group=obsDataGDD$name[1:75], color=obsDataGDD$name[1:75])) + geom_line() + geom_point() + labs(x = "Year", y = "# growing degree days (annual sum)", title = "CST6: Growing Degree Days - Annual Sum (raw data)", color = "Station")
+```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
+ggplot(data = obsDataCSP1, aes(x=obsDataCSP1$date, y=obsDataCSP1$pcpn_in_cnt_ge_1.0[order(obsDataCSP1$name)], group=sort(obsDataCSP1$name), color=sort(obsDataCSP1$name))) + geom_line() + geom_point() + labs(x = "Year", y = "# days with pcpn >= 1.0 inch", title = "CSP1: Heavy Precipitation (raw data)", color = "Station")
+```
+```{r echo=FALSE, dpi=96,  message=FALSE, warning=FALSE, error=FALSE}
+ggplot(data = obsDataGDD, aes(x=obsDataGDD$date, y=obsDataGDD$gdd32__cnt_gt_0[order(obsDataGDD$name)], group=sort(obsDataGDD$name), color=sort(obsDataGDD$name))) + geom_line() + geom_point() + labs(x = "Year", y = "# growing degree days (annual sum)", title = "CST6: Growing Degree Days - Annual Sum (raw data)", color = "Station")
 
 ```

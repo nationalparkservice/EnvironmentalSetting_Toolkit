@@ -24,5 +24,10 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
   
 #### Release 2.0 - Planned for March 2018 ####
 	
-	
+#### Disclaimer ####
+This software is in the public domain because it contains materials from the U.S. National Park Service, an agency of the United States Department of Interior.
+
+Although this software package has been used by the U.S. National Park Service (NPS), no warranty, expressed or implied, is made by the NPS or the U.S. Government as to the accuracy and functioning of the package and related program material nor shall the fact of distribution constitute any such warranty, and no responsibility is assumed by the NPS in connection therewith.
+
+This software is provided "AS IS."
     

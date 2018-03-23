@@ -2,7 +2,9 @@
 title: "Environmental Setting Metrics - Example ACIS Calls"
 author: "Lisa Nelson - IMD"
 date: "March 22, 2018"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 highlight: haddock
 ---
 
@@ -39,14 +41,15 @@ dataPlot <- function(plotDF, plotY, yLabel) {
   # }
 }
 ```
-The draft Environmental Setting protocol calculates four types of climate metrics. 
+The draft Environmental Setting protocol calculates four types of climate metrics using the EnvironmentalSetting toolkit <https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit>. 
 
 * station-based temperature and precipitation
 * station-based departures from normal temperature and precipitation
 * grid-based departures from normal temperature and precipitation
 * index-based precipitation and drought
 
-The first two metric types are calculated for all stations that intersect the 30km areas of analysis for parks while the latter two metric types are calculated by area of analysis (AOA) bounding box extent.
+The first two metric types are calculated for all stations that intersect the 30km areas of analysis for parks while the latter two metric types are calculated by area of analysis (AOA) bounding box extent. This notebook shows the first two metric types for stations around Agate Fossil Beds NM (AGFO). The climate stations and observation data for areas around and within National Parks are obtained from webservices maintained by NOAA's Regional Climate Centers (RCCs) from a system called ACIS - Applied Climate Information System <http://www.rcc-acis.org/index.html>.
+
 
 ```{r results = "asis", echo=FALSE}
 metrics <- read.csv("inst/ESParameters.csv")[ ,1:2]
@@ -71,10 +74,10 @@ Data requests are made with the getWxObservations() function. Exploratory plots 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST1: Hot Days (annual count)
 CST1Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("maxt"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_90", metric = "CST1")
-CST1Data$maxt_F_cnt_ge_90
+CST1Data$maxt_F_cnt_ge_90[order(CST1Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CST1Data, aes(x = CST1Data$date, y = CST1Data$maxt_F_cnt_ge_90, group=CST1Data$name, color=CST1Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST1Data$name) +
+  ggplot(data = CST1Data, aes(x = CST1Data$date, y = CST1Data$maxt_F_cnt_ge_90[order(CST1Data$name)], group=sort(CST1Data$name), color=sort(CST1Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CST1Data$name)) +
       labs(x = "Year",
       y = "max temp >= 90 (annual count)",
       color = "Station",
@@ -91,10 +94,10 @@ CST1Data$maxt_F_cnt_ge_90
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST2: Cold Days (annual count)
 CST2Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("maxt"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_32", metric = "CST2")
-CST2Data$maxt_F_cnt_le_32
+CST2Data$maxt_F_cnt_le_32[order(CST2Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CST2Data, aes(x = CST2Data$date, y = CST2Data$maxt_F_cnt_le_32, group=CST2Data$name, color=CST2Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST2Data$name) +
+  ggplot(data = CST2Data, aes(x = CST2Data$date, y = CST2Data$maxt_F_cnt_le_32[order(CST2Data$name)], group=sort(CST2Data$name), color=sort(CST2Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CST2Data$name)) +
       labs(x = "Year",
       y = "max temp <= 32 (annual count)",
       color = "Station",
@@ -111,10 +114,10 @@ CST2Data$maxt_F_cnt_le_32
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST3: Sub-freezing Days
 CST3Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("mint"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_32", metric = "CST3")
-CST3Data$mint_F_cnt_le_32
+CST3Data$mint_F_cnt_le_32[order(CST3Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CST3Data, aes(x = CST3Data$date, y = CST3Data$mint_F_cnt_le_32, group=CST3Data$name, color=CST3Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST3Data$name) +
+  ggplot(data = CST3Data, aes(x = CST3Data$date, y = CST3Data$mint_F_cnt_le_32[order(CST3Data$name)], group=sort(CST3Data$name), color=sort(CST3Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CST3Data$name)) +
       labs(x = "Year",
       y = "min temp <= 32 (annual count)",
       color = "Station",
@@ -130,10 +133,10 @@ CST3Data$mint_F_cnt_le_32
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST4: Days at or below 0 (annual count)
 CST4Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("mint"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_le_0", metric = "CST4")
-CST4Data$mint_F_cnt_le_0
+CST4Data$mint_F_cnt_le_0[order(CST4Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CST4Data, aes(x = CST4Data$date, y = CST4Data$mint_F_cnt_le_0, group=CST4Data$name, color=CST4Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST4Data$name) +
+  ggplot(data = CST4Data, aes(x = CST4Data$date, y = CST4Data$mint_F_cnt_le_0[order(CST4Data$name)], group=sort(CST4Data$name), color=sort(CST4Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CST4Data$name)) +
       labs(x = "Year",
       y = "min temp <= 0 (annual count)",
       color = "Station",
@@ -144,11 +147,11 @@ CST4Data$mint_F_cnt_le_0
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST5: Growing degree days (base temperature >= 32) (annual count)
 CST5Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("gdd32"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0", metric = "CST5")
-CST5Data$gdd32__cnt_gt_0
+CST5Data$gdd32__cnt_gt_0[order(CST5Data$name)]
 
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CST5Data, aes(x = CST5Data$date, y = CST5Data$gdd32__cnt_gt_0, group=CST5Data$name, color=CST5Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST5Data$name) +
+  ggplot(data = CST5Data, aes(x = CST5Data$date, y = CST5Data$gdd32__cnt_gt_0[order(CST5Data$name)], group=sort(CST5Data$name), color=sort(CST5Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CST5Data$name)) +
       labs(x = "Year",
       y = "growing degree days (annual count)",
       color = "Station",
@@ -159,10 +162,10 @@ CST5Data$gdd32__cnt_gt_0
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST6: Heating degree days (default base temperature >= 65) (annual count)
 CST6Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("hdd"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0", metric = "CST6")
-CST6Data$hdd__cnt_gt_0
+CST6Data$hdd__cnt_gt_0[order(CST6Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CST6Data, aes(x = CST6Data$date, y = CST6Data$hdd__cnt_gt_0, group=CST6Data$name, color=CST6Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST6Data$name) +
+  ggplot(data = CST6Data, aes(x = CST6Data$date, y = CST6Data$hdd__cnt_gt_0[order(CST6Data$name)], group=sort(CST6Data$name), color=sort(CST6Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CST6Data$name)) +
       labs(x = "Year",
       y = "heating degree days (annual count)",
       color = "Station",
@@ -173,10 +176,10 @@ CST6Data$hdd__cnt_gt_0
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CST7: Cooling degree days (default base temperature >= 65) (annual count)
 CST7Data <- getWxObservations(climateStations = unique(agfoStationsCurrent$uid), climateParameters = list("cdd"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_gt_0", metric = "CST7")
-CST7Data$cdd__cnt_gt_0
+CST7Data$cdd__cnt_gt_0[order(CST7Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CST7Data, aes(x = CST6Data$date, y = CST7Data$cdd__cnt_gt_0, group=CST7Data$name, color=CST7Data$name)) + geom_line() + geom_point() + facet_wrap(~ CST7Data$name) +
+  ggplot(data = CST7Data, aes(x = CST6Data$date, y = CST7Data$cdd__cnt_gt_0[order(CST7Data$name)], group=sort(CST7Data$name), color=sort(CST7Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CST7Data$name)) +
       labs(x = "Year",
       y = "cooling degree days (annual count)",
       color = "Station",
@@ -245,7 +248,7 @@ ggplot(vals, aes(x=date, y=as.numeric(value), color=variable, group=name)) + geo
 ```
 
 ## Precipitation
-For the departure-based metrics, a new set of stations collecting precipitation is needed. Notice the additional station discovered.
+For the departure-based metrics, a new set of stations collecting precipitation is needed. Notice the additional station discovered and that the three stations do not collect snow depth.
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 agfoStationsBBoxPcpn <- findStation(unitCode = "AGFO", customBBox = "-104.19609745831781, 42.112886184389545, -103.2970796760243, 42.7314612519983", climateParameters = list("pcpn","snow"))
 agfoStationsCurrentPcpn <- agfoStationsBBoxPcpn [agfoStationsBBoxPcpn$minDate >= "1998-02-10" & agfoStationsBBoxPcpn$maxDate >= "2018-02-10" ,]
@@ -254,10 +257,10 @@ str(agfoStationsCurrentPcpn)
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CSP1: Heavy precipitation days (annual count)
 CSP1Data <- getWxObservations(climateStations = unique(agfoStationsCurrentPcpn$uid), climateParameters = list("pcpn"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_1.0", metric = "CSP1")
-CSP1Data$pcpn_in_cnt_ge_1.0
+CSP1Data$pcpn_in_cnt_ge_1.0[order(CSP1Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-ggplot(data = CSP1Data, aes(x = CSP1Data$date, y = CSP1Data$pcpn_in_cnt_ge_1.0,  color=CSP1Data$name)) + geom_line() + geom_point() + facet_wrap(~ CSP1Data$name) +
+ggplot(data = CSP1Data, aes(x = CSP1Data$date, y = CSP1Data$pcpn_in_cnt_ge_1.0[order(CSP1Data$name)],  group=sort(CSP1Data$name), color=sort(CSP1Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CSP1Data$name)) +
       labs(x = "Year",
       y = "pcpn >= 1.0 inch (annual count)",
       color = "Station",
@@ -268,10 +271,10 @@ ggplot(data = CSP1Data, aes(x = CSP1Data$date, y = CSP1Data$pcpn_in_cnt_ge_1.0, 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CSP2: Extreme precipitation days (annual count)
 CSP2Data <- getWxObservations(climateStations = unique(agfoStationsCurrentPcpn$uid), climateParameters = list("pcpn"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_2.0", metric = "CSP2")
-CSP2Data$pcpn_in_cnt_ge_2.0
+CSP2Data$pcpn_in_cnt_ge_2.0[order(CSP2Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-ggplot(data = CSP2Data, aes(x = CSP2Data$date, y = CSP2Data$pcpn_in_cnt_ge_2.0, group=CSP2Data$name, color=CSP2Data$name)) + geom_line() + geom_point() + facet_wrap(~ CSP2Data$name) +
+ggplot(data = CSP2Data, aes(x = CSP2Data$date, y = CSP2Data$pcpn_in_cnt_ge_2.0[order(CSP2Data$name)], group=sort(CSP2Data$name), color=sort(CSP2Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CSP2Data$name)) +
       labs(x = "Year",
       y = "pcpn >= 2.0 inch (annual count)",
       color = "Station",
@@ -282,9 +285,9 @@ ggplot(data = CSP2Data, aes(x = CSP2Data$date, y = CSP2Data$pcpn_in_cnt_ge_2.0, 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CSP3: Micro-drought - runs of 7 or more days with less than 0.01in precip (annual count)
 CSP3Source <- getWxObservations(climateStations = unique(agfoStationsCurrentPcpn$uid), climateParameters = list("pcpn"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "run_le_0.01", metric = "CSP3")
-CSP3Source$pcpn_in_runYear
+CSP3Source$pcpn_in_runYear[order(CSP3Source$name)]
 CSP3Data <- getRunCounts(rawCounts = CSP3Source, runLength = 7, metric = "CSP3")
-CSP3Data$cntGERunLength_7
+CSP3Data$cntGERunLength_7[order(CSP3Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
 # ggplot(data = CSP3Data, aes(x = CSP3Data$date, y = CSP3Data$cntGERunLength_7, group=CSP3Data$name, color=CSP3Data$name)) + geom_line() + geom_point() + facet_wrap(~ CSP3Data$name) +
@@ -310,10 +313,10 @@ ggplot(vals, aes(x=date, y=as.numeric(value), color=name, group=name)) + geom_po
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CSP4: Measurable snow days (annual count)
 CSP4Data <- getWxObservations(climateStations = unique(agfoStationsCurrentPcpn$uid), climateParameters = list("snow"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_0.1", metric = "CSP4")
-CSP4Data$snow_in_cnt_ge_0.1
+CSP4Data$snow_in_cnt_ge_0.1[order(CSP4Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CSP4Data, aes(x = CSP4Data$date, y = CSP4Data$snow_in_cnt_ge_0.1, group=CSP4Data$name, color=CSP4Data$name)) + geom_line() + geom_point() + facet_wrap(~ CSP4Data$name) +
+  ggplot(data = CSP4Data, aes(x = CSP4Data$date, y = CSP4Data$snow_in_cnt_ge_0.1[order(CSP4Data$name)], group=sort(CSP4Data$name), color=sort(CSP4Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CSP4Data$name)) +
       labs(x = "Year",
       y = "snow >= 0.1 inch (annual count)",
       color = "Station",
@@ -324,10 +327,10 @@ CSP4Data$snow_in_cnt_ge_0.1
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CSP5: Moderate snow days (annual count)
 CSP5Data <- getWxObservations(climateStations = unique(agfoStationsCurrentPcpn$uid), climateParameters = list("snow"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_3.0", metric = "CSP5")
-CSP5Data$snow_in_cnt_ge_3.0
+CSP5Data$snow_in_cnt_ge_3.0[order(CSP5Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CSP5Data, aes(x = CSP5Data$date, y = CSP5Data$snow_in_cnt_ge_3.0, group=CSP5Data$name, color=CSP5Data$name)) + geom_line() + geom_point() + facet_wrap(~ CSP5Data$name) +
+  ggplot(data = CSP5Data, aes(x = CSP5Data$date, y = CSP5Data$snow_in_cnt_ge_3.0[order(CSP5Data$name)], group=sort(CSP5Data$name), color=sort(CSP5Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CSP5Data$name)) +
       labs(x = "Year",
       y = "snow >= 3.0 inches (annual count)",
       color = "Station",
@@ -338,10 +341,10 @@ CSP5Data$snow_in_cnt_ge_3.0
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Get CSP6: Heavy snow days (annual count)
 CSP6Data <- getWxObservations(climateStations = unique(agfoStationsCurrentPcpn$uid), climateParameters = list("snow"), sdate="1998-02-10", duration="yly", interval = "yly", reduceCodes = "cnt_ge_5.0", metric = "CSP6")
-CSP6Data$snow_in_cnt_ge_5.0
+CSP6Data$snow_in_cnt_ge_5.0[order(CSP6Data$name)]
 ```
 ```{r echo=FALSE, dpi=96, message=FALSE, warning=FALSE, error=FALSE}
-  ggplot(data = CSP6Data, aes(x = CSP6Data$date, y = CSP6Data$snow_in_cnt_ge_5.0, group=CSP6Data$name, color=CSP6Data$name)) + geom_line() + geom_point() + facet_wrap(~ CSP6Data$name) +
+  ggplot(data = CSP6Data, aes(x = CSP6Data$date, y = CSP6Data$snow_in_cnt_ge_5.0[order(CSP6Data$name)], group=sort(CSP6Data$name), color=sort(CSP6Data$name))) + geom_line() + geom_point() + facet_wrap(~ sort(CSP6Data$name)) +
       labs(x = "Year",
       y = "snow >= 5.0 inches (annual count)",
       color = "Station",
