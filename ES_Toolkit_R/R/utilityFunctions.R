@@ -704,7 +704,7 @@ getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
 #' getUSHCN retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
 #' 
 #' @param responseList list of response array of requested station codes (sid)
-#' @export
+#' @export getUSHCN
 #'
 getUSHCN <- function (responseList) {
   # Last updated 20121009 and URL may change in March 2018
@@ -742,11 +742,11 @@ getUSHCN <- function (responseList) {
 #' @param dbName database name
 #' @param dbTable table name containing monitoring locations
 #' @return A list of station UIDs
-#' @export
+#' @export getProtocolStations
 #'
 getProtocolStations <- function(dbInstance, dbName, dbTable) {
   # Open database connection
-  #library(RODBC)
+  library(RODBC)
   connString <- paste0("driver={SQL Server};server=",dbInstance,";database=",dbName,";uid=Report_Data_Reader;pwd=ReportDataUser")
   dbConn <- odbcDriverConnect(connString)
   
@@ -766,7 +766,7 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
 #' @return A data frame of stations, dates, and their departure counts above or below the 30-year climate normal (1981-2010)
-#' @export
+#' @export getDepartureCounts
 #'
 getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, filePathAndName=NULL) {
   dfResponse0 <- NULL
@@ -847,7 +847,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
 #' @param filePathAndName (optional) File path and name including extension for output CSV file
 #' @return A data frame of stations, dates, and their run counts greater than or equal to the specified runLength
-#' @export
+#' @export getRunCounts
 #' 
 getRunCounts <-
   function(rawCounts,
@@ -928,7 +928,7 @@ getRunCounts <-
 #' @return CSV files by metric
 #' @examples \dontrun{
 #' }
-#' @export
+#' @export getStationMetrics
 #'
 getStationMetrics <-
   function(climateStations,
