@@ -417,7 +417,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
     colnames(dfMeta)[10]  <- "sid3_type"
   }
   
-  if (!is.null(strsplit(dfMetaInit[, 1], " ")$state)) {
+  if (!is.null(strsplit(dfMetaInit[, 1], " ")$state) && grepl("^[A-Za-z]+$",strsplit(dfMetaInit[, 1], " ")$state) == TRUE) {
     dfMeta  <-
       cbind(dfMeta, as.data.frame(as.character(as.vector(
         strsplit(dfMetaInit[, 1], " ")$state
