@@ -885,7 +885,13 @@ getRunCounts <-
         byStation <- subset(toCount, uid == unique(toCount$uid)[j])
         # Count total greater than or equal to runLength
         #length(csp3check$pcpn_in_run[14][[1]][,1][as.numeric(csp3check$pcpn_in_run[14][[1]][,1]) >= 7])
-        countTotal <- length(byStation$pcpn_in_run[1][[1]][,1][as.numeric(byStation$pcpn_in_run[1][[1]][,1]) >= 7])
+        if (is.na(byStation$pcpn_in_run[1][[1]][, 1][as.numeric(byStation$pcpn_in_run[1][[1]][, 1]) >= runLength]) == TRUE) {
+          countTotal <- 0
+        }
+        else {
+          countTotal <-
+            length(byStation$pcpn_in_run[1][[1]][, 1][as.numeric(byStation$pcpn_in_run[1][[1]][, 1]) >= runLength])
+        }
         
         idArray[k] <- byStation$uid[1] 
         nArray[k] <- byStation$name[1]
