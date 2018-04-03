@@ -1076,9 +1076,14 @@ getStationMetrics <-
         maxMissing = 10,
         metric = "CST8and9"
       )
-    CST8and9Data <- getDepartureCounts(rawDepartures = CST8and9Source, duration = "yly", metric = "CST8and9")
-    outputMetricFile(CST8and9Data, "CST8and9",
-                     filePathAndRootname)
+    if(typeof(CST8and9Source) == "list") {
+      CST8and9Data <-
+        getDepartureCounts(rawDepartures = CST8and9Source,
+                           duration = "yly",
+                           metric = "CST8and9")
+      outputMetricFile(CST8and9Data, "CST8and9",
+                       filePathAndRootname)
+    }
     
     # Get CSP1: Heavy precip days
     CSP1Data <-
@@ -1122,9 +1127,14 @@ getStationMetrics <-
         reduceCodes = "run_le_0.01",
         metric = "CSP3"
       )
-    CSP3Data <- getRunCounts(rawCounts = CSP3Source, runLength = 7, metric = "CSP3")
-    outputMetricFile(CSP3Data, "CSP3",
-                     filePathAndRootname)
+    if(typeof(CSP3Source) == "list") {
+      CSP3Data <-
+        getRunCounts(rawCounts = CSP3Source,
+                     runLength = 7,
+                     metric = "CSP3")
+      outputMetricFile(CSP3Data, "CSP3",
+                       filePathAndRootname)
+    }
     
     # Get CSP4: Measurable snow days
     CSP4Data <-
@@ -1184,9 +1194,14 @@ getStationMetrics <-
         maxMissing = 10,
         metric = "CSP7and8"
       )
-    CSP7and8Data <- getDepartureCounts(rawDepartures = CSP7and8Source, duration = "yly", metric = "CSP7and8")
-    outputMetricFile(CSP7and8Data, "CSP7and8",
-                     filePathAndRootname)
+    if(typeof(CSP7and8Source) == "list") {
+      CSP7and8Data <-
+        getDepartureCounts(rawDepartures = CSP7and8Source,
+                           duration = "yly",
+                           metric = "CSP7and8")
+      outputMetricFile(CSP7and8Data, "CSP7and8",
+                       filePathAndRootname)
+    }
     
     return("SUCCESS")
     
