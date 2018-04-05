@@ -801,12 +801,24 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
       byStation <- subset(toCount, uid == unique(toCount$uid)[j])
       # Count above normal (+) and below normal (-)
       if ("avgt_departure_F" %in% colnames(byStation)) {
-        above <- nrow(subset(byStation, avgt_departure_F > 0))
-        below <- nrow(subset(byStation, avgt_departure_F < 0))
+        if (!is.na(byStation$avgt_departure_F) && !is.null(byStation$avgt_departure_F)) {
+          above <- nrow(subset(byStation, avgt_departure_F > 0))
+          below <- nrow(subset(byStation, avgt_departure_F < 0))
+        }
+        else {
+          above <- NA
+          below <- NA
+        }
       }
       else {
-        above <- nrow(subset(byStation, pcpn_departure_in > 0))
-        below <- nrow(subset(byStation, pcpn_departure_in < 0))
+        if (!is.na(byStation$pcpn_departure_in) && !is.null(byStation$pcpn_departure_in)) {
+          above <- nrow(subset(byStation, pcpn_departure_in > 0))
+          below <- nrow(subset(byStation, pcpn_departure_in < 0))
+        }
+        else {
+          above <- NA
+          below <- NA
+        }
       }
       idArray[k] <- byStation$uid[1] # rawDepartures$uid[i]
       nArray[k] <- byStation$name[1]
