@@ -1154,9 +1154,9 @@ getStationMetrics <-
                      filePathAndRootname)
     
     # Get CSP3: Micro-drought
-    CSP3 <- sapply(climateStations, function(x) {
+    CSP3Source <- 
       getWxObservations(
-        climateStations = x,
+        climateStations = climateStations,
         climateParameters = list("pcpn"),
         sdate = sdate,
         edate = edate,
@@ -1164,8 +1164,8 @@ getStationMetrics <-
         interval = "yly",
         reduceCodes = "run_le_0.01",
         metric = "CSP3"
-      )})
-    CSP3Source <- cleanNestedList(CSP3)
+      )
+    #CSP3Source <- cleanNestedList(CSP3)
     if(typeof(CSP3Source) == "list") {
       CSP3Data <-
         getRunCounts(rawCounts = CSP3Source,
