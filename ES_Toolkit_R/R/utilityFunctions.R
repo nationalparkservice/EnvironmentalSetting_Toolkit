@@ -1253,10 +1253,12 @@ getStationMetrics <-
 #' cleanNestedList extracts sublists from station metric responses
 #' @param metricResponse
 #'
-cleanNestedList <- function(x) {
+cleanNestedList <- function(l) {
   df <- NULL
-   
-  # Format if no stations missing data
+  
+  # Remove no data elements 
+  x <- l[l != "no data available"] 
+  # Format if no stations missing data == list of nested lists
   if (!any(sapply(x, is.list))) {
     for (i in 1:length(x[1, ])) {
       if (is.data.frame(df)) {
@@ -1268,7 +1270,7 @@ cleanNestedList <- function(x) {
     }
   }
   else  {
-    # Format if stations missing data or for run object
+    # Format if stations missing data (list of non-nested lists) or for run object
     if (typeof(x[1][[1]]) == "list") {
       # non-run object from sapply request
       for (i in 1:length(lapply(x, "[[", 1)))
