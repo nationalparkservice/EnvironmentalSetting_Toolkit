@@ -1,0 +1,619 @@
+{
+	"element": [{
+		"code": "maxt",
+		"description": "Maximum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "mint",
+		"description": "Minimum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "avgt",
+		"description": "Average temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "obst",
+		"description": "Minimum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "pcpn",
+		"description": "Precipitation",
+		"unit": "inches",
+		"unitabbr": "in"
+	}, {
+		"code": "snwd",
+		"description": "Snow depth",
+		"unit": "inches",
+		"unitabbr": "in"
+	}, {
+		"code": "snow",
+		"description": "Snowfall",
+		"unit": "inches",
+		"unitabbr": "in"
+	}, {
+		"code": "cdd",
+		"description": "Cooling degree days (default basee 65)",
+		"unit": "",
+		"unitabbr": ""
+	}, {
+		"code": "hdd",
+		"description": "Degree days below base (default basee 65)",
+		"unit": "",
+		"unitabbr": ""
+	}, {
+		"code": "gdd",
+		"description": "Degree days above base (default basee 50)",
+		"unit": "",
+		"unitabbr": ""
+	}],
+	"addCode": [{
+		"code": "f",
+		"description": "Flags"
+	}, {
+		"code": "t",
+		"description": "Time of observation"
+	}, {
+		"code": "i",
+		"description": "Station ID associated with data"
+	}, {
+		"code": "v",
+		"description": "Var minor associated with data"
+	}, {
+		"code": "s",
+		"description": "Source flag"
+	}, {
+		"code": "n",
+		"description": "Network associated with data"
+	}],
+	"acisflag": [{
+		"code": "M",
+		"description": "Missing"
+	}, {
+		"code": "T",
+		"description": "Trace"
+	}, {
+		"code": "A",
+		"description": "Accumulated"
+	}],
+	"sourceFlag": [{
+		"code": "7",
+		"description": "not defined"
+	}],
+	"stationIdType": [{
+		"code": "1",
+		"description": "WBAN",
+		"subtypes":""
+	}, {
+		"code": "2",
+		"description": "COOP",
+		"subtypes":""
+	}, {
+		"code": "3",
+		"description": "FAA",
+		"subtypes":""
+	}, {
+		"code": "4",
+		"description": "WMO",
+		"subtypes":""
+	}, {
+		"code": "5",
+		"description": "ICAO",
+		"subtypes":""
+	}, {
+		"code": "6",
+		"description": "GHCN",
+		"subtypes":
+			{"USC":"COOP",
+			 "USR":"RAWS",
+			 "USS":"SNOTEL"}
+	}, {
+		"code": "7",
+		"description": "NWSLI",
+		"subtypes":""
+	}, {
+		"code": "8",
+		"description": "RCC",
+		"subtypes":""
+	}, {
+		"code": "9",
+		"description": "ThreadEx",
+		"subtypes":""
+	}, {
+		"code": "10",
+		"description": "CoCoRaHS",
+		"subtypes":""
+	}, {
+		"code": "12",
+		"description": "Unknown",
+		"subtypes": ""
+	}],
+	"duration": [{
+		"code": "dly",
+		"description": "Daily data"
+	}, {
+		"code": "mly",
+		"description": "Monthly summary; must specify reduce"
+	}],
+	"elementGrid": [{
+		"code": "pcpn",
+		"description": "Precipitation",
+		"unit": "inches",
+		"unitabbr": "in"
+	}, {
+		"code": "maxt",
+		"description": "Maximum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "mint",
+		"description": "Minimum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "avgt",
+		"description": "Average temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}],
+	"elementAggregateGrid": [{
+		"code": "mly_maxt",
+		"duration": "mly",
+		"description": "Monthly mean maximum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "mly_mint",
+		"duration": "mly",
+		"description": "Monthly mean minimum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "mly_avgt",
+		"duration": "mly",
+		"description": "Monthly mean average temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "mly_pcpn",
+		"duration": "mly",
+		"description": "Monthly mean precipitation sum",
+		"unit": "inches",
+		"unitabbr": "in"
+	},
+	{
+		"code": "yly_maxt",
+		"duration": "yly",
+		"description": "Yearly mean maximum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "yly_mint",
+		"duration": "yly",
+		"description": "Yearly mean minimum temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "yly_avgt",
+		"duration": "yly",
+		"description": "Yearly mean average temperature",
+		"unit": "Fahrenheit",
+		"unitabbr": "F"
+	}, {
+		"code": "yly_pcpn",
+		"duration": "yly",
+		"description": "Yearly mean precipitation sum",
+		"unit": "inches",
+		"unitabbr": "in"
+	}],
+		"gridSources":
+	{"NRCC Interpolated": {"code":1, "period": "1950-Present", "area": "Continental US", "missingValue":"-999"},
+            "NRCC Hi-Res": {"code":3,  "area": "US East of Rockies ", "period": "Temperature: 1998-present; Precipitation: 2002-present", "missingValue":"-999"},
+            "CRCM + NCEP": {"code":4,  "area": "Continental US ", "period": "1970-2000", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "CRCM + CCSM": {"code":5,  "area": "Continental US ", "period": "1970-2000, 2040-2070", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "CRCM + CGCM3": {"code":6,  "area": "Continental US ", "period": "1970-2000, 2040-2070", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "MM5I + NCEP": {"code":9,  "area": "Continental US", "period": "1970-2000", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "MM5I + CCSM": {"code":10,  "area": "Continental US", "period": "1970-2000, 2040-2070", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "RCM3 + NCEP": {"code":11,  "area": "Continental US", "period": "1970-2000", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "RCM3 + CGCM3": {"code":12,  "area": "Continental US", "period": "1970-2000, 2040-2070", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "RCM3 + GFDL": {"code":13,  "area": "Continental US", "period": "1970-2000, 2040-2070", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "WRFG + NCEP": {"code":14,  "area": "Continental US", "period": "1970-2000", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "WRFG + CCSM": {"code":15,  "area": "Continental US", "period": "1970-2000, 2040-2070", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "WRFG + CGCM3": {"code":16,  "area": "Continental US", "period": "1970-2000, 2040-2070", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"},
+            "PRISM": {"code":21,  "area": "Continental US ", "period": "Daily: 1981-present; Monthly/Yearly: 1895-present", "missingValue":"-999",
+            "projection":"GEOGCS[\"NAD83\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", "cellSize":"0.04166666666667",
+              "projectionCRS" : "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"
+            }
+	},
+	"climateMetrics": [
+  {
+    "Metric": "CGP1",
+    "Description": "Monthly departures from average monthly average precipitation (% of climate normal)",
+    "Summary": "Monthly departures from average monthly average precipitation (% of climate normal)",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Monthly",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGP2",
+    "Description": "Monthly departures from average monthly minimum precipitation (% of climate normal)",
+    "Summary": "Monthly departures from average monthly minimum precipitation (% of climate normal)",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Monthly",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGP3",
+    "Description": "Monthly departures from average monthly maximum precipitation (% of climate normal)",
+    "Summary": "Monthly departures from average monthly maximum precipitation (% of climate normal)",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Monthly",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGP4",
+    "Description": "Snow-Water Equivalent Snowpack Departures from average (% of climate normal)",
+    "Summary": "Snow-Water Equivalent Snowpack Departures from average (% of climate normal)",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Monthly",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGP5",
+    "Description": "Monthly Palmer Drought Severity Index",
+    "Summary": "Monthly Palmer Drought Severity Index",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Index",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGP6",
+    "Description": "Standardized Precipitation Index",
+    "Summary": "Standardized Precipitation Index",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Index",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGT1",
+    "Description": "Monthly temperature departures from average monthly average temperature (% of climate normal)",
+    "Summary": "Monthly temperature departures from average monthly average temperature (% of climate normal)",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Monthly",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGT2",
+    "Description": "Monthly temperature departures from average monthly minimum temperature (% of climate normal)",
+    "Summary": "Monthly temperature departures from average monthly minimum temperature (% of climate normal)",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Monthly",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CGT3",
+    "Description": "Monthly temperature departures from average monthly maximum temperature (% of climate normal)",
+    "Summary": "Monthly temperature departures from average monthly maximum temperature (% of climate normal)",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Monthly",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP1",
+    "Description": "Heavy Precipitation Days",
+    "Summary": "Heavy Precipitation Days. Number of days during the calendar year with >=1.0 in (25 mm) liquid precipitation.",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_ge_1.0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP2",
+    "Description": "Extreme Precipitation Days",
+    "Summary": "Extreme Precipitation Days. Number of days during the calendar year with >=2.0 in (51 mm) liquid precipitation.",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_ge_2.0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP3",
+    "Description": "Micro-drought",
+    "Summary": "Micro-drought . Number of strings of seven or more consecutive days during the calendar year without a trace (<.01 in / 0.3 cm) of liquid precipitation.",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "run_le_0.1",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP4",
+    "Description": "Measurable Snow Days",
+    "Summary": "Measurable Snow Days. Number of days during the calendar year with measurable (â‰¥0.1 in [0.3 cm]) snow.",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_ge_0.1",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP5",
+    "Description": "Moderate Snow Days",
+    "Summary": "Moderate Snow Days. Number of days during the calendar year with >=3.0 in (7.6 cm) of snow.",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_ge_3.0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP6",
+    "Description": "Heavy Snow Days",
+    "Summary": "Heavy Snow Days. Number of days during the calendar year with >=5.0 in (12.7 cm) of snow.",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_ge_5.0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP7",
+    "Description": "Above Normal Precipitation Days",
+    "Summary": "Above Normal Precipitation Days. Number of days above long-term climate normal (calculated monthly and annually).",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CSP8",
+    "Description": "Below Normal Precipitation Days",
+    "Summary": "Below Normal Precipitation Days. Number of days below long-term climate normal (calculated monthly and annually).",
+    "Measure": "Climate",
+    "MeasureType": "Precipitation",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST1",
+    "Description": "Hot Days",
+    "Summary": "Hot Days. number of days during the calendar year when the maximum daily temperature equals 90 degrees F (32 degrees C) or above.",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_ge_90",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST2",
+    "Description": "Cold Days",
+    "Summary": "Cold Days. number of days during the calendar year when the maximum daily temperature equals 32 degrees F (0 degrees C) or below.",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_le_32",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST3",
+    "Description": "Sub-Freezing Days",
+    "Summary": "Sub-Freezing Days. number of days during the calendar year when the minimum daily temperature equals 32 degrees F (0 degrees C) or below; typically happens at night.",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_le_32",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST4",
+    "Description": "Sub-Zero Days",
+    "Summary": "Sub-Zero Days. number of days during the calendar year when the minimum daily temperature equals 0 degrees F (-17.8 degrees C) or below; typically happens at night.",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_le_0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST5",
+    "Description": "Growing Degree Days",
+    "Summary": "Growing Degree Days. number of days between the last spring frost (daily minimum temperature at or below 32 degrees F (0 degrees C)) and the first fall frost. Calculated annually.",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_gt_0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST6",
+    "Description": "Heating Degree Days",
+    "Summary": "Heating Degree Days. Sum of negative difference between observed temperature and a baseline of 65 degrees F. Calculated annually from January 1 to December 31.",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_gt_0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST7",
+    "Description": "Cooling Degree Days",
+    "Summary": "Cooling Degree Days. Sum of positive difference between observed temperature and a baseline of 65 degrees F. Calculated annually from July 1 to June 30.",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "cnt_gt_0",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST8",
+    "Description": "Above Normal Temperature Days",
+    "Summary": "Above Normal Temperature Days. Number of days above long-term climate normal (calculated monthly and annually).",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  },
+  {
+    "Metric": "CST9",
+    "Description": "Below Normal Temperature Days",
+    "Summary": "Below Normal Temperature Days. Number of days below long-term climate normal (calculated monthly and annually).",
+    "Measure": "Climate",
+    "MeasureType": "Temperature",
+    "ParameterType": "Daily",
+    "ParameterExtent": "All",
+    "RasterValue": "NULL",
+    "Lifecycle": "Active",
+    "ProtocolVersion": 1,
+	"Request": "",
+    "CreateDate": "2018-01-09 00:00:00.0000000"
+  }
+]
+}
