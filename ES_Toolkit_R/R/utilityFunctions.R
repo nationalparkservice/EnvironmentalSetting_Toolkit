@@ -737,6 +737,63 @@ getUSHCN <- function (responseList) {
   return(hcnFlags)
 }
 
+#' getAOAFeature 
+#' NPS only: function retrieves GeoJSON-formatted area of analysis (AOA) polygon and transforms it to the 
+#' NAD83 geographic coordinate reference system (CRS). Requires rgdal library.
+#' @param unitCode unitCode One NPS unit code as a string
+#' @param aoaExtent aoaExtent one of park, km3 or km30 as a string. Default is "km30"
+#' @export
+getAOAFeature <- function(unitCode, aoaExtent="km30") {
+  tempOutput <- "temp.geojson"
+  featureServiceURLs <-
+    list("park" = "https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA_WebMercator/FeatureServer/0",
+         "km3" = "https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA_WebMercator/FeatureServer/1",
+         "km30" = "https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA_WebMercator/FeatureServer/2"
+         )
+  featureServicePathInfo <- "query?where=UNIT_CODE+%3D+%27XXXX%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Meter&relationParam=&outFields=*&returnGeometry=true&maxAllowableOffset=&geometryPrecision=&outSR=&gdbVersion=&returnDistinctValues=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&multipatchOption=&resultOffset=&resultRecordCount=&f=geojson"
+  
+  featureServiceRequest <- paste(as.character(featureServiceURLs[featureServiceURLs = aoaExtent]), gsub("XXXX", unitCode, featureServicePathInfo), sep = "/" )
+  print(featureServiceRequest)
+  geoJSONFeature <- fromJSON(featureServiceRequest)
+  # Have to save to temp file
+  jsonFeature <- download.file(featureServiceRequest, tempOutput, mode = "w")
+  featurePoly <- readOGR(dsn = tempOutput, layer = "OGRGeoJSON")
+  #aoaPoly <- readOGR(dsn = geoJSONFeature, layer = "aoaPoly")
+  
+  return(featurePoly)
+}
+
+
+#' getNPSPRISM
+#' NPS only: function retrieves cropped (clipped) 800m PRISM rasters from shared drive
+#' @param featurePolygon SpatialPolygon object; for area of analysis, use getAOAFeature()
+#' @param sdate sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.
+#' @param edate edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.
+#' @param metric One climate metric from the IMD Environmental Setting protocol
+#' @param unitCode (optional) unitCode One NPS unit code as a string
+#' @param filePath (optional) full file path for raster output
+#' @export
+getNPSPRISM <- function(featurePolygon, sdate, edate, metric, unitCode=NULL, filePath=NULL) {
+  plot(featurePolygon)
+  testRaster <- raster("X:\\NRSSData\\ReferenceData\\PRISM\\rasters\\ppt\\ppt2013_7.tif")
+  rasterCrop <- crop(testRaster, extent(featurePolygon))
+  plot(rasterCrop)
+  plot(featurePolygon, add = TRUE)
+  
+  if(!is.null(filePath)) {
+    outfileName <- metric
+    if(!is.null(unitCode)) {
+      outfileName <- paste(outfileName, unitCode, sep = "_")
+    }
+    outFile <- paste(filePath, outfileName, sep = "\\")
+  }
+  else {
+    print("No path")
+  }
+  return(rasterCrop)
+  
+}
+
 #' getProtocolStations function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
 #' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
 #' @param dbName database name
