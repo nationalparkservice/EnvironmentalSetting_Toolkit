@@ -8,7 +8,8 @@
 #' @param climateParameters (optional) A list of one or more daily, monthly, or yearly climate parameters (e.g. pcpn, mint, maxt, avgt or mly_pcpn, mly_mint, mly_maxt, mly_avgt or yly_pcpn, yly_mint, yly_maxt, yly_avgt).  If not specified, defaults to all parameters for the specified duration. See the ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param duration (optional)  "dly" | "mly" | "yly" (i.e, daily, monthly, or yearly). If not specified, defaults to dly.
 #' @param gridDescription (optional) "PRISM" is the default. For all options, see Table 6 on the ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
-#' @param filePath filePath (optional) Folder path for output ASCII grid(s). If specified, grid(s) are saved to the folder. Otherwise, grid(s) are saved to an in-memory raster stack (by date).
+#' @param filePath filePath (optional) Folder path for output ASCII grid(s). If specified, grid(s) are saved to the folder. Otherwise, grid(s) are saved to an in-memory raster stack (by date). If using Windows, include double back-slashes.
+#' @param customBBox (optional) String containing bounding box geographic coordinates (longitude,latitude) using the WGS84 datum in the following format: Lower Left Longitude, Lower Left Latitude, Upper Right Longitude, Upper Right Latitude. Note: longitude is negative in the western hemisphere. Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"
 #' @return ASCII-formatted grid file for each parameter for each date or an in-memory raster stack with a layer for each parameter for each date
 #' @examples \dontrun{
 #' Two daily PRISM grids (default grid source) for GRSM for one date: print output to console
@@ -42,25 +43,44 @@ getGrids <-
             climateParameters = NULL,
             duration = "dly",
             gridDescription = "PRISM",
-            filePath = NULL) {
+            filePath = NULL, 
+            customBBox = NULL) {
     # URLs and request parameters:
     # ACIS data services
     baseURL <- "http://data.rcc-acis.org/"
     webServiceSource <- "GridData"
     config <- add_headers(Accept = "'Accept':'application/json'")
     
-    # Default to CONUS extent
     if (is.null(unitCode)) {
-      bbox <- "-130, 20,-50, 60"
+      if (is.null(customBBox)) {
+        # Default to CONUS extent
+        bbox <- "-130, 20,-50, 60"
+      }
+      else {
+        # Use customBBox
+        if (is.null(distance)) {
+          bboxExpand  = 0.0
+        } else {
+          bboxExpand = distance * 0.011 # convert km to decimal degrees
+        }
+        bbox <- getBBox(unitCode, bboxExpand, customBBox)
+      }
     } else {
-      # NPS Park bounding box
+      # NPS Park bounding box or custom BBox or both (uses customBBox)
       if (is.null(distance)) {
         bboxExpand  = 0.0
       } else {
         bboxExpand = distance * 0.011 # convert km to decimal degrees
       }
-      bbox <- getBBox(unitCode, bboxExpand)
+      if (is.null(customBBox)) {
+        bbox <- getBBox(unitCode, bboxExpand)
+      }
+      else {
+        bbox <- getBBox(unitCode, bboxExpand, customBBox)
+        #bbox <- getBBox(unitCode, bboxExpand)
+      }
     }
+    #body  <- list(bbox = bbox)
     
     # Initialize body of request
     bList <- list(bbox = bbox,

@@ -6,7 +6,7 @@
 \usage{
 getGrids(unitCode = NULL, sdate = NULL, edate = NULL, distance = NULL,
   climateParameters = NULL, duration = "dly", gridDescription = "PRISM",
-  filePath = NULL)
+  filePath = NULL, customBBox = NULL)
 }
 \arguments{
 \item{unitCode}{(optional) One unit code as a string. If not specified, defaults to CONUS geographic extent.}
@@ -19,7 +19,9 @@ getGrids(unitCode = NULL, sdate = NULL, edate = NULL, distance = NULL,
 
 \item{gridDescription}{(optional) "PRISM" is the default. For all options, see Table 6 on the ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
 
-\item{filePath}{filePath (optional) Folder path for output ASCII grid(s). If specified, grid(s) are saved to the folder. Otherwise, grid(s) are saved to an in-memory raster stack (by date).}
+\item{filePath}{filePath (optional) Folder path for output ASCII grid(s). If specified, grid(s) are saved to the folder. Otherwise, grid(s) are saved to an in-memory raster stack (by date). If using Windows, include double back-slashes.}
+
+\item{customBBox}{(optional) String containing bounding box geographic coordinates (longitude,latitude) using the WGS84 datum in the following format: Lower Left Longitude, Lower Left Latitude, Upper Right Longitude, Upper Right Latitude. Note: longitude is negative in the western hemisphere. Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"}
 
 \item{sDate}{sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.}
 
