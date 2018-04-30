@@ -11,6 +11,10 @@ getGrids(unitCode = NULL, sdate = NULL, edate = NULL, distance = NULL,
 \arguments{
 \item{unitCode}{(optional) One unit code as a string. If not specified, defaults to CONUS geographic extent.}
 
+\item{sdate}{sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.}
+
+\item{edate}{edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.}
+
 \item{distance}{(optional) Distance (in kilometers) to buffer park bounding box}
 
 \item{climateParameters}{(optional) A list of one or more daily, monthly, or yearly climate parameters (e.g. pcpn, mint, maxt, avgt or mly_pcpn, mly_mint, mly_maxt, mly_avgt or yly_pcpn, yly_mint, yly_maxt, yly_avgt).  If not specified, defaults to all parameters for the specified duration. See the ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
@@ -22,10 +26,6 @@ getGrids(unitCode = NULL, sdate = NULL, edate = NULL, distance = NULL,
 \item{filePath}{filePath (optional) Folder path for output ASCII grid(s). If specified, grid(s) are saved to the folder. Otherwise, grid(s) are saved to an in-memory raster stack (by date). If using Windows, include double back-slashes.}
 
 \item{customBBox}{(optional) String containing bounding box geographic coordinates (longitude,latitude) using the WGS84 datum in the following format: Lower Left Longitude, Lower Left Latitude, Upper Right Longitude, Upper Right Latitude. Note: longitude is negative in the western hemisphere. Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"}
-
-\item{sDate}{sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.}
-
-\item{eDate}{edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.}
 }
 \value{
 ASCII-formatted grid file for each parameter for each date or an in-memory raster stack with a layer for each parameter for each date

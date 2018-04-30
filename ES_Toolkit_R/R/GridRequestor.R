@@ -2,8 +2,8 @@
 #'
 #' Takes one park code and a list of one or more climate parameters and requests climate data for the specified duration (daily, monthly, or yearly). Returns a grid or grids (by parameter) in ASCII format or an in-memory raster stack.
 #' @param unitCode (optional) One unit code as a string. If not specified, defaults to CONUS geographic extent.
-#' @param sDate sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.
-#' @param eDate edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.
+#' @param sdate sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.
+#' @param edate edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.
 #' @param distance (optional) Distance (in kilometers) to buffer park bounding box
 #' @param climateParameters (optional) A list of one or more daily, monthly, or yearly climate parameters (e.g. pcpn, mint, maxt, avgt or mly_pcpn, mly_mint, mly_maxt, mly_avgt or yly_pcpn, yly_mint, yly_maxt, yly_avgt).  If not specified, defaults to all parameters for the specified duration. See the ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param duration (optional)  "dly" | "mly" | "yly" (i.e, daily, monthly, or yearly). If not specified, defaults to dly.

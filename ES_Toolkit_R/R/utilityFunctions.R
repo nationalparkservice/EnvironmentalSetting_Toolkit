@@ -738,8 +738,8 @@ getUSHCN <- function (responseList) {
 }
 
 #' getAOAFeature 
-#' NPS only: function retrieves GeoJSON-formatted area of analysis (AOA) polygon and transforms it to the 
-#' NAD83 geographic coordinate reference system (CRS). Requires rgdal library.
+#' NPS only: function retrieves GeoJSON-formatted area of analysis (AOA) polygon in the 
+#' NAD83 geographic coordinate reference system (CRS). 
 #' @param unitCode unitCode One NPS unit code as a string
 #' @param aoaExtent aoaExtent one of park, km3 or km30 as a string. Default is "km30"
 #' @export
@@ -765,32 +765,115 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 
 
 #' getNPSPRISM
-#' NPS only: function retrieves cropped (clipped) 800m PRISM rasters from shared drive
+#' NPS only: function retrieves cropped (clipped) 800m PRISM rasters from shared drive.
+#' Requires rgdal library.
 #' @param featurePolygon SpatialPolygon object; for area of analysis, use getAOAFeature()
+#' @param metric (required) One climate metric from the IMD Environmental Setting protocol
+#' @param unitCode (required) unitCode One NPS unit code as a string
 #' @param sdate sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.
-#' @param edate edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.
-#' @param metric One climate metric from the IMD Environmental Setting protocol
-#' @param unitCode (optional) unitCode One NPS unit code as a string
+#' @param edate edate (optional) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range. If missing, defaults to end of previous calendar year.
 #' @param filePath (optional) full file path for raster output
 #' @export
-getNPSPRISM <- function(featurePolygon, sdate, edate, metric, unitCode=NULL, filePath=NULL) {
-  plot(featurePolygon)
-  testRaster <- raster("X:\\NRSSData\\ReferenceData\\PRISM\\rasters\\ppt\\ppt2013_7.tif")
-  rasterCrop <- crop(testRaster, extent(featurePolygon))
-  plot(rasterCrop)
-  plot(featurePolygon, add = TRUE)
-  
-  if(!is.null(filePath)) {
-    outfileName <- metric
-    if(!is.null(unitCode)) {
-      outfileName <- paste(outfileName, unitCode, sep = "_")
+getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL, filePath=NULL) {
+  if (!is.null(featurePolygon) && !is.null(metric) && !is.null(unitCode)) {
+    metricPrefix <- NULL
+    
+    if(metric == "CGP1") {
+      metricPrefix <- "ppt"
     }
-    outFile <- paste(filePath, outfileName, sep = "\\")
+    else if (metric == "CGT1") {
+      metricPrefix <- "tmean"
+    }
+    else if (metric == "CGT2") {
+      metricPrefix <- "tmin"
+    }
+    else {
+      metricPrefix <- "tmax"
+    }
+    
+    acisLookup <-
+      fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit"), flatten = TRUE) # assumes placement in package inst subfolder
+    monthlyPRISMPath <-
+      acisLookup$npsPRISMPaths$monthlyRasters
+    normalsPRISMPath <- acisLookup$npsPRISMPaths$normalsRasters
+    gridSource = "PRISM"
+    fileNameRoot <- paste(unitCode, metric, sep = "_")
+    srcFolder <- paste(monthlyPRISMPath, metricPrefix, sep = "\\")
+    # Iterate dates and metrics
+    if(is.null(edate)) {
+      edate <- as.numeric(format(Sys.Date(), "%Y")) - 1
+    }
+    if (!is.null(sdate)) {
+      countYears <-
+        round(as.double(difftime(
+          strptime(edate, format = "%Y"),
+          strptime(sdate, format = "%Y"),
+          units = "days"
+        )) / 365)
+      dateList <-
+        as.list(seq(as.numeric(sdate), as.numeric(edate), 1))
+      sapply(dateList, function(x) {
+        srcRasterPattern <-
+          paste(srcFolder,
+                paste(metricPrefix, as.character(x), sep = ""),
+                sep = "\\")
+        
+        if(!is.null(filePath)) {
+        outRasterPattern <-
+          paste(filePath,
+                paste(unitCode, paste(metricPrefix, as.character(x), sep = ""), sep = "_"),
+                sep = "\\")
+        }
+        else {
+          outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(x), sep=""), sep = "_")
+        }
+        print(srcRasterPattern)
+        print(outRasterPattern)
+        for (mth in 1:12) {
+          if (x < 2011) {
+            # Arc/INFO Grid format
+            srcRaster <-
+              paste(srcRasterPattern, as.character(mth), sep = "_")
+          }
+          else {
+            # GeoTIFF format
+            srcRaster <-
+              paste(paste(srcRasterPattern, as.character(mth), sep = "_"),
+                    ".tif",
+                    sep = "")
+          }
+          outRaster <- paste(paste(outRasterPattern, as.character(mth), sep = "_"),  ".tif", sep = "")
+          
+          # Crop and save
+          #print(srcRaster)
+          rasterCrop <- crop(raster(srcRaster), extent(featurePolygon))
+          crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
+          plot(rasterCrop)
+          plot(featurePolygon, add = TRUE)
+          writeRaster(rasterCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
+          write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
+        }
+      })
+      
+    }
+    #testRaster <-
+     # raster(paste(monthlyPRISMPath, "ppt\\ppt2013_7.tif", sep = "\\"))
+    
+    
+    if (!is.null(filePath)) {
+      outfileName <- metric
+      if (!is.null(unitCode)) {
+        outfileName <- paste(outfileName, unitCode, sep = "_")
+      }
+      outFile <- paste(filePath, outfileName, sep = "\\")
+    }
+    else {
+      print("No path")
+    }
+    return(rasterCrop)
+  } else {
+    return("ERROR: Missing feature polygon and metric.")
   }
-  else {
-    print("No path")
-  }
-  return(rasterCrop)
   
 }
 
