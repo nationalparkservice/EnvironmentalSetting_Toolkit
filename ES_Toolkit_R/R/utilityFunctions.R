@@ -777,6 +777,8 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL, filePath=NULL) {
   if (!is.null(featurePolygon) && !is.null(metric) && !is.null(unitCode)) {
     metricPrefix <- NULL
+    srcStack <- NULL
+    metricStack <- NULL
     
     if(metric == "CGP1") {
       metricPrefix <- "ppt"
@@ -827,9 +829,14 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         else {
           outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(x), sep=""), sep = "_")
         }
-        print(srcRasterPattern)
-        print(outRasterPattern)
+        #print(srcRasterPattern)
+        #print(outRasterPattern)
         for (mth in 1:12) {
+          if (mth == 1) {
+            outSrcStack <- stack()
+          }
+          
+          outSrcStackName <- paste("outStack", as.character(mth), sep = "_")
           if (x < 2011) {
             # Arc/INFO Grid format
             srcRaster <-
@@ -848,11 +855,19 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           #print(srcRaster)
           rasterCrop <- crop(raster(srcRaster), extent(featurePolygon))
           crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
-          plot(rasterCrop)
-          plot(featurePolygon, add = TRUE)
+          
           writeRaster(rasterCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
           write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
+          #plot(rasterCrop)
+          #plot(featurePolygon, add = TRUE)
+          outSrcStack <- stack(outSrcStack, rasterCrop)
+          if (mth > 1) {
+            plot(outSrcStack)
+            plot(featurePolygon, add = TRUE)
+          }
+          outSrcStackName <- outSrcStack
         }
+        
       })
       
     }
@@ -1392,14 +1407,21 @@ getStationMetrics <-
 
 #' cleanNestedList extracts sublists from station metric responses
 #' @param metricResponse
+#' @export
 #'
 cleanNestedList <- function(l) {
   df <- NULL
   
   # Remove no data elements 
-  x <- l[l != "no data available"] 
+  if (any(l == "no data available")) {
+    x <- l[l != "no data available"]
+  }
+  else {
+    x <- l
+  }
+   
   # Format if no stations missing data == list of nested lists
-  if (!any(sapply(x, is.list))) {
+  if (!any(sapply(x, is.list)) && length(x) > 0) {
     for (i in 1:length(x[1, ])) {
       if (is.data.frame(df)) {
         df <- rbind(df, as.data.frame(x[, i]))
@@ -1409,7 +1431,7 @@ cleanNestedList <- function(l) {
       }
     }
   }
-  else  {
+  else if(length(x) > 0) {
     # Format if stations missing data (list of non-nested lists) or for run object
     if (typeof(x[1][[1]]) == "list") {
       # non-run object from sapply request
