@@ -777,6 +777,8 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL, filePath=NULL) {
   if (!is.null(featurePolygon) && !is.null(metric) && !is.null(unitCode)) {
     metricPrefix <- NULL
+    srcStack <- NULL
+    metricStack <- NULL
     
     if(metric == "CGP1") {
       metricPrefix <- "ppt"
@@ -827,9 +829,14 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         else {
           outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(x), sep=""), sep = "_")
         }
-        print(srcRasterPattern)
-        print(outRasterPattern)
+        #print(srcRasterPattern)
+        #print(outRasterPattern)
         for (mth in 1:12) {
+          if (mth == 1) {
+            outSrcStack <- stack()
+          }
+          
+          outSrcStackName <- paste("outStack", as.character(mth), sep = "_")
           if (x < 2011) {
             # Arc/INFO Grid format
             srcRaster <-
@@ -848,11 +855,19 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           #print(srcRaster)
           rasterCrop <- crop(raster(srcRaster), extent(featurePolygon))
           crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
-          plot(rasterCrop)
-          plot(featurePolygon, add = TRUE)
+          
           writeRaster(rasterCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
           write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
+          #plot(rasterCrop)
+          #plot(featurePolygon, add = TRUE)
+          outSrcStack <- stack(outSrcStack, rasterCrop)
+          if (mth > 1) {
+            plot(outSrcStack)
+            plot(featurePolygon, add = TRUE)
+          }
+          outSrcStackName <- outSrcStack
         }
+        
       })
       
     }
