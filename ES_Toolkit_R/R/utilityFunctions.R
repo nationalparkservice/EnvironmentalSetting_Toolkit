@@ -778,7 +778,6 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
   if (!is.null(featurePolygon) && !is.null(metric) && !is.null(unitCode)) {
     metricPrefix <- NULL
     srcStack <- NULL
-    outSrcStack <- stack()
     metricStack <- NULL
     
     if(metric == "CGP1") {
@@ -833,9 +832,9 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         #print(srcRasterPattern)
         #print(outRasterPattern)
         for (mth in 1:12) {
-          #if (mth == 1) {
-          #  outSrcStack <- stack()
-          #}
+          if (mth == 1) {
+            outSrcStack <- stack()
+          }
           
           outSrcStackName <- paste("outStack", as.character(mth), sep = "_")
           if (x < 2011) {
@@ -856,26 +855,25 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           #print(srcRaster)
           rasterCrop <- crop(raster(srcRaster), extent(featurePolygon))
           crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
-          names(rasterCrop) <- outSrcStackName
           
-          if(!is.null(filePath)) {
-            writeRaster(rasterCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
-            write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
-          }
+          writeRaster(rasterCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
+          write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
           #plot(rasterCrop)
           #plot(featurePolygon, add = TRUE)
           outSrcStack <- stack(outSrcStack, rasterCrop)
-          
           if (mth > 1) {
             plot(outSrcStack)
             plot(featurePolygon, add = TRUE)
           }
-          #outSrcStackName <- outSrcStack
+          outSrcStackName <- outSrcStack
         }
+        
       })
+      
     }
     #testRaster <-
      # raster(paste(monthlyPRISMPath, "ppt\\ppt2013_7.tif", sep = "\\"))
+    
     
     if (!is.null(filePath)) {
       outfileName <- metric
@@ -887,7 +885,7 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
     else {
       print("No path")
     }
-    return(outSrcStack)
+    return(rasterCrop)
   } else {
     return("ERROR: Missing feature polygon and metric.")
   }
@@ -1111,7 +1109,6 @@ getRunCounts <-
 #' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
 #' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
 #' @param filePathAndRootname File path and root name for output CSV files. Do not include extension.
-#' @param metric (optional) Default is all station metrics for temperature and precipitation. If used, returns values for specified metric.
 #' @return CSV files by metric
 #' @export getStationMetrics
 #'
@@ -1119,8 +1116,7 @@ getStationMetrics <-
   function(climateStations,
            sdate = "por",
            edate = "por",
-           filePathAndRootname, 
-           metric = NULL) {
+           filePathAndRootname) {
     # Iterate list of parameters, creating output data frames (and optionally, CSV files), by metric
     #acisLookup <-
     #  fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit")) # assumes placement in package inst subfolder
@@ -1145,7 +1141,6 @@ getStationMetrics <-
     #   # Call getWxObservations
     # }
     
-    if (is.null(metric)) {
     # Get CST1: Hot Days (annual count)
     CST1 <- sapply(climateStations, function(x) {
       getWxObservations(
@@ -1156,7 +1151,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "cnt_ge_90",
-        maxMissing = 999,
         metric = "CST1"
       )})
     CST1Data <- cleanNestedList(CST1)
@@ -1173,7 +1167,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "cnt_le_32",
-        maxMissing = 999,
         metric = "CST2"
       )})
     CST2Data <- cleanNestedList(CST2)
@@ -1190,7 +1183,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "cnt_le_32",
-        maxMissing = 999,
         metric = "CST3"
       )})
     CST3Data <- cleanNestedList(CST3)
@@ -1206,7 +1198,6 @@ getStationMetrics <-
         edate = edate,
         duration = "yly",
         interval = "yly",
-        maxMissing = 999,
         reduceCodes = "cnt_le_0",
         metric = "CST4"
       )})
@@ -1223,7 +1214,6 @@ getStationMetrics <-
         edate = edate,
         duration = "yly",
         interval = "yly",
-        maxMissing = 999,
         reduceCodes = "cnt_gt_0",
         metric = "CST5"
       )})
@@ -1240,7 +1230,6 @@ getStationMetrics <-
         edate = edate,
         duration = "yly",
         interval = "yly",
-        maxMissing = 999,
         reduceCodes = "cnt_gt_0",
         metric = "CST6"
       )})
@@ -1257,7 +1246,6 @@ getStationMetrics <-
         edate = edate,
         duration = "yly",
         interval = "yly",
-        maxMissing = 999,
         reduceCodes = "cnt_gt_0",
         metric = "CST7"
       )})
@@ -1297,7 +1285,6 @@ getStationMetrics <-
         edate = edate,
         duration = "yly",
         interval = "yly",
-        maxMissing = 999,
         reduceCodes = "cnt_ge_1.0",
         metric = "CSP1"
       )})
@@ -1315,7 +1302,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "cnt_ge_2.0",
-        maxMissing = 999,
         metric = "CSP2"
       )})
     CSP2Data <- cleanNestedList(CSP2)
@@ -1332,7 +1318,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "run_le_0.01",
-        maxMissing = 10,
         metric = "CSP3"
       )
     #CSP3Source <- cleanNestedList(CSP3)
@@ -1355,7 +1340,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "cnt_ge_0.1",
-        maxMissing = 999,
         metric = "CSP4"
       )})
     CSP4Data <- cleanNestedList(CSP4)
@@ -1372,7 +1356,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "cnt_ge_3.0",
-        maxMissing = 999,
         metric = "CSP5"
       )})
     CSP5Data <- cleanNestedList(CSP5)
@@ -1389,7 +1372,6 @@ getStationMetrics <-
         duration = "yly",
         interval = "yly",
         reduceCodes = "cnt_ge_5.0",
-        maxMissing = 999,
         metric = "CSP6"
       )})
     CSP6Data <- cleanNestedList(CSP6)
@@ -1418,160 +1400,21 @@ getStationMetrics <-
       outputMetricFile(CSP7and8Data, "CSP7and8",
                        filePathAndRootname)
     }
+    
     return("SUCCESS")
-    }
-    else { # Single metric
-      duration <- "yly"
-      interval <- "yly"
-      metricData <- NULL
-      
-      # Format metric parameters
-      if (metric == "CST1" || metric == "CST2") {
-        rCode <- "cnt_ge_90.0"
-        cParam <- list("maxt")
-        if (metric == "CST2") {
-          rCode <- "cnt_le_32.0"
-        }
-      }
-      else if (metric == "CST3" || metric == "CST4") {
-        rCode <- "cnt_le_32.0"
-        cParam <- list("mint")
-        if (metric == "CST4") {
-          rCode <- "cnt_le_0.0"
-        }
-      }
-      else if (metric == "CST5" ||
-               metric == "CST6" || metric == "CST7") {
-        rCode <- "cnt_ge_0"
-        cParam <- list("gdd32")
-        if (metric == "CST5") {
-          cParam <- list("hdd")
-        }
-        else if (metric == "CST6") {
-            cParam <- list("cdd")
-          }
-      }
-      else if (metric == "CST8and9") {
-        duration <- "dly"
-        interval <- "dly"
-        cParam <-  list("avgt")
-      }
-      else if (metric == "CSP1" || metric == "CSP2" || metric == "CSP3") {
-        cParam <- list("pcpn")
-        rCode <- "cnt_ge_1.0"
-        
-        if (metric == "CSP2") {
-          rCode <- "cnt_ge_2.0"
-        }
-        else if (metric == "CSP3") {
-          rCode <- "run_le_0.01"
-        }
-      }
-      else if (metric == "CSP4" || metric == "CSP5" || metric == "CSP6") {
-        cParam <- list("snow")
-        rCode <- "cnt_ge_0.1"
-        
-        if (metric == "CSP5") {
-          rCode <- "cnt_ge_3.0"
-        }
-        else if (metric == "CSP6") {
-          rCode <- "cnt_ge_5.0"
-        }
-      }
-      else if (metric == "CSP7and8") {
-        duration <- "dly"
-        interval <- "dly"
-        cParam <-  list("pcpn")
-      }
-      
-      # Request station data
-      if (metric != "CST8and9" &&
-          metric != "CSP7and8" && metric != "CSP3") {
-        metricSource <- sapply(climateStations, function(x) {
-          getWxObservations(
-            climateStations = x,
-            climateParameters = cParam,
-            sdate = sdate,
-            edate = edate,
-            duration = duration,
-            interval = interval,
-            reduceCodes = rCode,
-            maxMissing = 999,
-            metric = metric
-          )
-        })
-        metricData <- cleanNestedList(metricSource)
-        outputMetricFile(metricData, metric,
-                         filePathAndRootname)
-    }
-    else if (metric == "CSP3") {
-      metricSource <-
-        getWxObservations(
-          climateStations = climateStations,
-          climateParameters = cParam,
-          sdate = sdate,
-          edate = edate,
-          duration = duration,
-          interval = interval,
-          reduceCodes = rCode,
-          maxMissing = 10,
-          metric = metric
-        )
-      if (typeof(metricSource) == "list") {
-        metricData <-
-          getRunCounts(rawCounts = metricSource,
-                       runLength = 7,
-                       metric = metric)
-        outputMetricFile(metricData, metric,
-                         filePathAndRootname)
-      }
-    }
-    else {
-      metricSource <- sapply(climateStations, function(x) {
-        getWxObservations(
-          climateStations = x,
-          climateParameters = cParam,
-          sdate = sdate,
-          edate = edate,
-          duration = duration,
-          interval = interval,
-          normal = "departure",
-          maxMissing = 10,
-          metric = metric
-        )
-      })
-      metricData <- cleanNestedList(metricSource)
-      if (typeof(metricSource) == "list") {
-        finalMetricData <-
-          getDepartureCounts(rawDepartures = metricData,
-                             duration = duration,
-                             metric = metric)
-        
-        outputMetricFile(finalMetricData, metric,
-                         filePathAndRootname)
-      }
-    }
-    }
-    return(metricData)
+    
   }
 
 #' cleanNestedList extracts sublists from station metric responses
 #' @param metricResponse
-#' @export
 #'
 cleanNestedList <- function(l) {
   df <- NULL
   
   # Remove no data elements 
-  if (any(l == "no data available")) {
-    x <- l[l != "no data available"]
-  }
-  else {
-    x <- l
-  }
-   
+  x <- l[l != "no data available"] 
   # Format if no stations missing data == list of nested lists
-  if (!any(sapply(x, is.list)) && length(x) > 0) {
+  if (!any(sapply(x, is.list))) {
     for (i in 1:length(x[1, ])) {
       if (is.data.frame(df)) {
         df <- rbind(df, as.data.frame(x[, i]))
@@ -1581,7 +1424,7 @@ cleanNestedList <- function(l) {
       }
     }
   }
-  else if(length(x) > 0) {
+  else  {
     # Format if stations missing data (list of non-nested lists) or for run object
     if (typeof(x[1][[1]]) == "list") {
       # non-run object from sapply request
@@ -1626,7 +1469,7 @@ cleanNestedList <- function(l) {
 #' @param metricData
 #' @param metricName
 #' @param filePathAndRootName
-#' @export
+#' 
 #'
 outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
   outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_METRIC.csv"), sep = "")
