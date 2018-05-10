@@ -763,7 +763,6 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
   return(featurePoly)
 }
 
-
 #' getNPSPRISM
 #' NPS only: function retrieves cropped (clipped) 800m PRISM rasters from shared drive.
 #' Requires rgdal library.
@@ -775,11 +774,17 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 #' @param filePath (optional) full file path for raster output
 #' @export
 getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL, filePath=NULL) {
+  metricPrefix <- NULL
+  srcStack <- stack()
+  srcStackFiles <- c()
+  srcStackFileNames <- c()
+  normalStack <- stack()
+  normalStackFiles <- c()
+  normalStackFileNames <- c()
+  metricStack <- stack()
+  metricStackFiles <- c()
+  
   if (!is.null(featurePolygon) && !is.null(metric) && !is.null(unitCode)) {
-    metricPrefix <- NULL
-    srcStack <- NULL
-    metricStack <- NULL
-    
     if(metric == "CGP1") {
       metricPrefix <- "ppt"
     }
@@ -801,6 +806,9 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
     gridSource = "PRISM"
     fileNameRoot <- paste(unitCode, metric, sep = "_")
     srcFolder <- paste(monthlyPRISMPath, metricPrefix, sep = "\\")
+    normalsRoot <- gsub("XXX", metricPrefix, "PRISM_XXX_30yr_normal_800mM2_")
+    expandBBox <- c(-0.02, 0.02, -0.02, 0.02)
+    
     # Iterate dates and metrics
     if(is.null(edate)) {
       edate <- as.numeric(format(Sys.Date(), "%Y")) - 1
@@ -814,30 +822,29 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         )) / 365)
       dateList <-
         as.list(seq(as.numeric(sdate), as.numeric(edate), 1))
-      sapply(dateList, function(x) {
+      for (x in 1:length(dateList)) {
         srcRasterPattern <-
           paste(srcFolder,
-                paste(metricPrefix, as.character(x), sep = ""),
+                paste(metricPrefix, as.character(dateList[x]), sep = ""),
                 sep = "\\")
         
         if(!is.null(filePath)) {
           outRasterPattern <-
             paste(filePath,
-                  paste(unitCode, paste(metricPrefix, as.character(x), sep = ""), sep = "_"),
+                  paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep = ""), sep = "_"),
                   sep = "\\")
         }
         else {
-          outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(x), sep=""), sep = "_")
+          outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep=""), sep = "_")
         }
         #print(srcRasterPattern)
         #print(outRasterPattern)
         for (mth in 1:12) {
-          if (mth == 1) {
-            outSrcStack <- stack()
-          }
-          
-          outSrcStackName <- paste("outStack", as.character(mth), sep = "_")
-          if (x < 2011) {
+          #outSrcStackName <- paste("outSource", as.character(mth), sep = "_")
+          #srcStackFileNames <- append(srcStackFileNames, paste("outSource", as.character(mth), sep = "_"))
+          #normalStackFileNames <- append(normalStackFileNames, paste("outNormal", as.character(mth), sep = "_"))
+          #outNormalStackName <- paste("outNormal", as.character(mth), sep = "_")
+          if (dateList[x] < 2011) {
             # Arc/INFO Grid format
             srcRaster <-
               paste(srcRasterPattern, as.character(mth), sep = "_")
@@ -853,43 +860,90 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           
           # Crop and save
           #print(srcRaster)
-          rasterCrop <- crop(raster(srcRaster), extent(featurePolygon))
+          if(!compareCRS(featurePolygon, raster(srcRaster))) {
+            cropPolygon <- spTransform(featurePolygon, crs(raster(srcRaster)))
+          }
+          else {
+            cropPolygon <- featurePolygon
+          }
+          aoaBBox <- c(t(bbox(agfoAOA)))
+          aoaBBoxExtent <- extent(aoaBBox + expandBBox)
+          rasterCrop <- crop(raster(srcRaster), aoaBBoxExtent)
           crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
           
           writeRaster(rasterCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
           write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
-          #plot(rasterCrop)
-          #plot(featurePolygon, add = TRUE)
-          outSrcStack <- stack(outSrcStack, rasterCrop)
-          if (mth > 1) {
-            plot(outSrcStack)
-            plot(featurePolygon, add = TRUE)
+          #srcStackFiles <- append(srcStackFiles, rasterCrop)
+          srcStack <- stack(srcStack, rasterCrop)
+          
+          # Crop normals
+          if(mth < 10) {
+            mthAppend <- paste("0", as.character(mth), sep = "")
           }
-          outSrcStackName <- outSrcStack
+          else {
+            mthAppend <- as.character(mth)
+          }
+          normalsSrc <- paste(normalsPRISMPath, paste(paste(normalsRoot, mthAppend, sep=""), "_asc.asc", sep= ""), sep = "\\")
+          normalsCrop <- crop(raster(normalsSrc), aoaBBoxExtent)
+          crs(normalsCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
+          normalStack <- stack(normalStack, normalsCrop)
+          
+          
+        } # end of by month
+      } # end by year
+      print(nlayers(srcStack))
+      print(nlayers(normalStack))
+      plot(srcStack)
+      plot(cropPolygon, add = TRUE)
+      plot(normalStack)
+      
+      # Apply metric functions
+      # Get indices from number of layers
+      idx <- rep(1, nlayers(srcStack))
+      if(length(grep("P", metric)) > 0) {
+        # Precipitation percent of normal
+        
+        for (i in 1:nlayers(srcStack)) {
+          mR <- ((srcStack[[i]]/100) / normalStack[[i]])
+          metricStack <- stack(metricStack, mask(mR, cropPolygon))
         }
         
-      })
-      
-    }
-    #testRaster <-
-    # raster(paste(monthlyPRISMPath, "ppt\\ppt2013_7.tif", sep = "\\"))
-    
-    
-    if (!is.null(filePath)) {
-      outfileName <- metric
-      if (!is.null(unitCode)) {
-        outfileName <- paste(outfileName, unitCode, sep = "_")
+        # fun <-  function(r1) {
+        #   rMM <- ((r1/100))
+        #   rPct <- rMM / normalStack
+        # }
+        # fun <-  function(r1) {
+        #   ((r1/100) / normalStack) * 100
+        # }
+        #metricStack <- stackApply(srcStack, idx, fun=fun)
+        #metricStack <- calc(srcStack, fun, forceapply=TRUE)
       }
-      outFile <- paste(filePath, outfileName, sep = "\\")
+      else {
+        # Temperature departure
+        for (i in 1:nlayers(srcStack)) {
+          # Convert to degrees F
+          mR1 <- (srcStack[[i]]/100) * 1.8 + 32
+          mR2 <- normalStack[[i]] * 1.8 + 32
+          mR <- mR1 - mR2
+          #mR <- ((srcStack[[i]]/100) - normalStack[[i]]) 
+          metricStack <- stack(metricStack, mask(mR,cropPolygon))
+        }
+        # fun <-  function(r1) {
+        #   ((r1/100) - normalStack) * (1.8) + 32
+        # }
+        # metricStack <- calc(srcStack, fun)
+      }
+      if(length(grep("P", metric)) > 0) {
+        metricNames <- gsub("_", "_pctNormal_", names(srcStack))
+      }
+      else {
+        metricNames <- gsub("_", "_departure_", names(srcStack))
+      }
+      names(metricStack) <- metricNames
+      plot(metricStack)
     }
-    else {
-      print("No path")
-    }
-    return(rasterCrop)
-  } else {
-    return("ERROR: Missing feature polygon and metric.")
   }
-  
+  return(metricStack)
 }
 
 #' getProtocolStations function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
@@ -1622,11 +1676,10 @@ cleanNestedList <- function(l) {
 }
 
 #' outputMetricFile writes metric data frames to a CSV file
-#' @param metricData
-#' @param metricName
-#' @param filePathAndRootName
+#' @param metricData Data frame to output
+#' @param metricName Metric name
+#' @param filePathAndRootName Output path and folder
 #' 
-#'
 outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
   outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_METRIC.csv"), sep = "")
   write.table(
