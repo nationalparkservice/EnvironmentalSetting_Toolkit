@@ -822,6 +822,7 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         )) / 365)
       dateList <-
         as.list(seq(as.numeric(sdate), as.numeric(edate), 1))
+      outPlotPrefix <- paste(unitCode, paste(metricPrefix, as.character(unlist(dateList)), sep=""), sep = "_")
       for (x in 1:length(dateList)) {
         srcRasterPattern <-
           paste(srcFolder,
@@ -831,11 +832,12 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         if(!is.null(filePath)) {
           outRasterPattern <-
             paste(filePath,
-                  paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep = ""), sep = "_"),
+                  paste(unitCode, paste(paste(metricPrefix, "normal", sep = "_"), as.character(dateList[x]), sep = ""), sep = "_"),
                   sep = "\\")
         }
         else {
-          outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep=""), sep = "_")
+          outRasterPattern <- paste(unitCode, paste(paste(metricPrefix, "normal", sep = "_"), as.character(dateList[x]), sep = ""), sep = "_")
+          #outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep=""), sep = "_")
         }
         #print(srcRasterPattern)
         #print(outRasterPattern)
@@ -870,9 +872,6 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           aoaBBoxExtent <- extent(aoaBBox + expandBBox)
           rasterCrop <- crop(raster(srcRaster), aoaBBoxExtent)
           crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
-          
-          writeRaster(rasterCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
-          write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
           #srcStackFiles <- append(srcStackFiles, rasterCrop)
           srcStack <- stack(srcStack, rasterCrop)
           
@@ -886,16 +885,22 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           normalsSrc <- paste(normalsPRISMPath, paste(paste(normalsRoot, mthAppend, sep=""), "_asc.asc", sep= ""), sep = "\\")
           normalsCrop <- crop(raster(normalsSrc), aoaBBoxExtent)
           crs(normalsCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
+          writeRaster(normalsCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
+          write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
           normalStack <- stack(normalStack, normalsCrop)
-          
-          
         } # end of by month
       } # end by year
       print(nlayers(srcStack))
       print(nlayers(normalStack))
+      # Output source, normal, and metric plots
+      png(filename = paste(outPlotPrefix, "_Source.png", sep = ""), width = 1950, height = 2700, res = 300)
       plot(srcStack)
       plot(cropPolygon, add = TRUE)
+      dev.off()
+      png(filename = paste(outPlotPrefix, "_Normals.png", sep = ""), width = 1950, height = 2700, res = 300)
       plot(normalStack)
+      plot(cropPolygon, add = TRUE)
+      dev.off()
       
       # Apply metric functions
       # Get indices from number of layers
@@ -905,18 +910,9 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         
         for (i in 1:nlayers(srcStack)) {
           mR <- ((srcStack[[i]]/100) / normalStack[[i]])
-          metricStack <- stack(metricStack, mask(mR, cropPolygon))
+          mRMask <- mask(mR, cropPolygon)
+          metricStack <- stack(metricStack, mRMask)
         }
-        
-        # fun <-  function(r1) {
-        #   rMM <- ((r1/100))
-        #   rPct <- rMM / normalStack
-        # }
-        # fun <-  function(r1) {
-        #   ((r1/100) / normalStack) * 100
-        # }
-        #metricStack <- stackApply(srcStack, idx, fun=fun)
-        #metricStack <- calc(srcStack, fun, forceapply=TRUE)
       }
       else {
         # Temperature departure
@@ -926,12 +922,12 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           mR2 <- normalStack[[i]] * 1.8 + 32
           mR <- mR1 - mR2
           #mR <- ((srcStack[[i]]/100) - normalStack[[i]]) 
-          metricStack <- stack(metricStack, mask(mR,cropPolygon))
+          mRMask <- mask(mR, cropPolygon)
+          metricStack <- stack(metricStack, mRMask)
         }
-        # fun <-  function(r1) {
-        #   ((r1/100) - normalStack) * (1.8) + 32
-        # }
-        # metricStack <- calc(srcStack, fun)
+        writeRaster(mRMask, gsub("normal", "metric", outRaster), format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
+        write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
+        
       }
       if(length(grep("P", metric)) > 0) {
         metricNames <- gsub("_", "_pctNormal_", names(srcStack))
@@ -940,7 +936,10 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         metricNames <- gsub("_", "_departure_", names(srcStack))
       }
       names(metricStack) <- metricNames
+      png(filename = paste(outPlotPrefix, "_Metric.png", sep = ""), width = 1950, height = 2700, res = 300)
       plot(metricStack)
+      plot(cropPolygon, add = TRUE)
+      dev.off()
     }
   }
   return(metricStack)
