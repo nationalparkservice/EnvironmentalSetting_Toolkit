@@ -764,8 +764,13 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 }
 
 #' getNPSPRISM
+#' 
 #' NPS only: function retrieves cropped (clipped) 800m PRISM rasters from shared drive.
+#' License for source 800m PRISM data precludes outputting cropped source rasters.
 #' Requires rgdal library.
+#' 
+#' For the AOA, outputs raster stack containing metric layers (cropped, masked) and writes out metric and cropped 30 year normal GeoTIFF files.
+#' 
 #' @param featurePolygon SpatialPolygon object; for area of analysis, use getAOAFeature()
 #' @param metric (required) One climate metric from the IMD Environmental Setting protocol
 #' @param unitCode (required) unitCode One NPS unit code as a string
@@ -814,15 +819,18 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
       edate <- as.numeric(format(Sys.Date(), "%Y")) - 1
     }
     if (!is.null(sdate)) {
-      countYears <-
-        round(as.double(difftime(
-          strptime(edate, format = "%Y"),
-          strptime(sdate, format = "%Y"),
-          units = "days"
-        )) / 365)
+      # countYears <-
+      #   round(as.double(difftime(
+      #     strptime(edate, format = "%Y"),
+      #     strptime(sdate, format = "%Y"),
+      #     units = "days"
+      #   )) / 365)
       dateList <-
         as.list(seq(as.numeric(sdate), as.numeric(edate), 1))
-      outPlotPrefix <- paste(unitCode, paste(metricPrefix, as.character(unlist(dateList)), sep=""), sep = "_")
+      
+      countInterval <- 12 #countLayers / countYears
+      countLayers <- (length(dateList)) * countInterval
+      outPlotPrefix <- paste(unitCode, metricPrefix, sep = "_")
       for (x in 1:length(dateList)) {
         srcRasterPattern <-
           paste(srcFolder,
@@ -832,15 +840,16 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
         if(!is.null(filePath)) {
           outRasterPattern <-
             paste(filePath,
-                  paste(unitCode, paste(paste(metricPrefix, "normal", sep = "_"), as.character(dateList[x]), sep = ""), sep = "_"),
+                  paste(unitCode, paste(metricPrefix, "normal", sep = "_"), sep = "_"),
                   sep = "\\")
         }
         else {
-          outRasterPattern <- paste(unitCode, paste(paste(metricPrefix, "normal", sep = "_"), as.character(dateList[x]), sep = ""), sep = "_")
+          outRasterPattern <- paste(unitCode, paste(metricPrefix, "normal", sep = "_"), sep = "_")
+          # If by year: outRasterPattern <- paste(unitCode, paste(paste(metricPrefix, "normal", sep = "_"), as.character(dateList[x]), sep = "_"), sep = "_")
           #outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep=""), sep = "_")
         }
-        #print(srcRasterPattern)
-        #print(outRasterPattern)
+        outSourcePlotPrefix <- paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep="_"), sep = "_")
+
         for (mth in 1:12) {
           #outSrcStackName <- paste("outSource", as.character(mth), sep = "_")
           #srcStackFileNames <- append(srcStackFileNames, paste("outSource", as.character(mth), sep = "_"))
@@ -861,7 +870,6 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           outRaster <- paste(paste(outRasterPattern, as.character(mth), sep = "_"),  ".tif", sep = "")
           
           # Crop and save
-          #print(srcRaster)
           if(!compareCRS(featurePolygon, raster(srcRaster))) {
             cropPolygon <- spTransform(featurePolygon, crs(raster(srcRaster)))
           }
@@ -872,7 +880,6 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           aoaBBoxExtent <- extent(aoaBBox + expandBBox)
           rasterCrop <- crop(raster(srcRaster), aoaBBoxExtent)
           crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
-          #srcStackFiles <- append(srcStackFiles, rasterCrop)
           srcStack <- stack(srcStack, rasterCrop)
           
           # Crop normals
@@ -882,32 +889,36 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           else {
             mthAppend <- as.character(mth)
           }
+          
           normalsSrc <- paste(normalsPRISMPath, paste(paste(normalsRoot, mthAppend, sep=""), "_asc.asc", sep= ""), sep = "\\")
-          normalsCrop <- crop(raster(normalsSrc), aoaBBoxExtent)
-          crs(normalsCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
-          writeRaster(normalsCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
-          write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
-          normalStack <- stack(normalStack, normalsCrop)
+          if (x == 1) {
+            normalsCrop <- crop(raster(normalsSrc), aoaBBoxExtent)
+            crs(normalsCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
+            
+            writeRaster(normalsCrop, outRaster, format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
+            write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
+            normalStack <- stack(normalStack, normalsCrop)
+          }
+          print(paste("Finished month", as.character(mth), sep = " "))
         } # end of by month
+        print(paste("Finished year", as.character(dateList[x]), sep = " "))
       } # end by year
-      print(nlayers(srcStack))
-      print(nlayers(normalStack))
-      # Output source, normal, and metric plots
-      png(filename = paste(outPlotPrefix, "_Source.png", sep = ""), width = 1950, height = 2700, res = 300)
-      plot(srcStack)
-      plot(cropPolygon, add = TRUE)
-      dev.off()
+      # Replicate the stack rather than re-clipping
+      normalStack <- stack(normalStack, normalStack)
+      
+      # Output normals plot
       png(filename = paste(outPlotPrefix, "_Normals.png", sep = ""), width = 1950, height = 2700, res = 300)
-      plot(normalStack)
-      plot(cropPolygon, add = TRUE)
+      plot(normalStack[[1:12]])
+      #plot(cropPolygon, add = TRUE)
       dev.off()
       
+      print(nlayers(srcStack))
+      print(nlayers(normalStack))
+      print("Starting metric")
+      
       # Apply metric functions
-      # Get indices from number of layers
-      idx <- rep(1, nlayers(srcStack))
       if(length(grep("P", metric)) > 0) {
         # Precipitation percent of normal
-        
         for (i in 1:nlayers(srcStack)) {
           mR <- ((srcStack[[i]]/100) / normalStack[[i]])
           mRMask <- mask(mR, cropPolygon)
@@ -925,21 +936,54 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           mRMask <- mask(mR, cropPolygon)
           metricStack <- stack(metricStack, mRMask)
         }
-        writeRaster(mRMask, gsub("normal", "metric", outRaster), format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
-        write(acisLookup$gridSources[gridSource][[1]]$projection, gsub(".tif", ".prj", outRaster))
-        
       }
       if(length(grep("P", metric)) > 0) {
-        metricNames <- gsub("_", "_pctNormal_", names(srcStack))
+        metricNames <- paste(unitCode, gsub("_", "_pctNormal_", names(srcStack)), sep = "_")
       }
       else {
-        metricNames <- gsub("_", "_departure_", names(srcStack))
+        metricNames <- paste(unitCode, gsub("_", "_departure_", names(srcStack)), sep = "_")
       }
       names(metricStack) <- metricNames
-      png(filename = paste(outPlotPrefix, "_Metric.png", sep = ""), width = 1950, height = 2700, res = 300)
-      plot(metricStack)
-      plot(cropPolygon, add = TRUE)
-      dev.off()
+      
+      # Output to GeoTIFF
+      for (i in 1:nlayers(metricStack)) {
+        writeRaster(metricStack[[i]], paste(names(metricStack[[i]]), ".tif", sep = ""), format="GTiff", options=c("TFW=YES"), datatype="INT2U", prj = TRUE, overwrite=TRUE)
+        write(acisLookup$gridSources[gridSource][[1]]$projection, paste(names(metricStack[[i]]), ".prj", sep = ""))
+        # Populate data frame for export to CSV
+        # cellCount <- ncell(getValues(metricStack[[i]]), na.rm =  TRUE)
+        # mean <- mean(getValues(metricStack[[i]]), na.rm =  TRUE)
+        # min <- min(getValues(metricStack[[i]]), na.rm =  TRUE)
+        # max <- max(getValues(metricStack[[i]]), na.rm =  TRUE)
+        # sd <- sd(getValues(metricStack[[i]]), na.rm =  TRUE)
+        # var <- var(getValues(metricStack[[i]]), na.rm =  TRUE)
+      }
+      
+      
+      print("Finished metric")
+      # Output summary source and metric plots, by year
+      for(y in 1:length(dateList)) {
+        if (y == 1) {
+          sStart <- y
+        }
+        else if (y > 1 && y < length(dateList)) {
+          #sStart <- (countLayers - (countRange * x)) + 1
+          sStart <- (countInterval * y) + 1
+        }
+        else if (y == length(dateList)) {
+          sStart <- (countLayers - countInterval) + 1
+        }
+        sEnd <- countInterval * y
+        
+        png(filename = paste(paste(outPlotPrefix, as.character(dateList[y]), sep = "_"), "_Source.png", sep = ""), width = 1950, height = 2700, res = 300)
+        plot(srcStack[[sStart:sEnd]])
+        #plot(cropPolygon, add = TRUE)
+        dev.off()
+        
+        png(filename = paste(paste(outPlotPrefix, as.character(dateList[y]), sep = "_"), "_Metric.png", sep = ""), width = 1950, height = 2700, res = 300)
+        plot(metricStack[[sStart:sEnd]])
+        #plot(cropPolygon, add = TRUE)
+        dev.off()
+      }
     }
   }
   return(metricStack)
