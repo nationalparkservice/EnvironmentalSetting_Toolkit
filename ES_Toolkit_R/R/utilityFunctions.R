@@ -547,8 +547,8 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
                     ncol = 1,
                     byrow = TRUE
                   )[, 1], "[", 2))
-                missingArray <-
-                  matrix(lapply(rList$data, "[[", 2)[[k]], ncol = 1)[, 1][2]
+                #missingArray <-
+                #  matrix(lapply(rList$data, "[[", 2)[[k]], ncol = 1)[, 1][2]
                 #unlist(sapply(matrix(lapply(rList$data, "[[", 2), ncol = 1, byrow = TRUE)[,1], "[", 2))
                 df[[yName]][k] <- yearArray
                 dfRun <-
@@ -558,8 +558,8 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
                 df[[rName]][k] <- list(dfRun)
                 colnames(df)[15] <- rName
                 # For missing count by year data, missing vector returned as character to accommodate missing records ("NA")
-                df[[fName]][k] <-
-                  as.character(replace(missingArray, missingArray == " ", NA))
+                #df[[fName]][k] <-
+                  #as.character(replace(missingArray, missingArray == " ", NA))
               }
               itemCount <- itemCount + 1
             }
@@ -1132,6 +1132,7 @@ getRunCounts <-
     
     # Get date vector from rawCounts
     dates <- as.Date(rawCounts$date, "%Y")
+    #countDuration <- rawCounts$date
     countDuration <- unique(format(dates, "%Y"))
     yearCount <- length(countDuration)
     stationCount <- length(unique(rawCounts$uid))
@@ -1155,15 +1156,14 @@ getRunCounts <-
         # Count total greater than or equal to runLength
         #length(csp3check$pcpn_in_run[14][[1]][,1][as.numeric(csp3check$pcpn_in_run[14][[1]][,1]) >= 7])
         # Missing/NA element
-        if (is.na(byStation$pcpn_in_run) || is.na(byStation$pcpn_in_run[1][[1]][,1]) || is.null(byStation$pcpn_in_run)) {
+        if (is.null(byStation$pcpn_in_run) || is.null(byStation$pcpn_in_run[1][[1]][,1])) {
           countTotal <- NA
         }
-        # No run element
-        else if (length(byStation$pcpn_in_run[1][[1]][, 1]) == 0) {
-          countTotal <- 0
-        }
+        else if (is.na(byStation$pcpn_in_run) || is.na(byStation$pcpn_in_run[1][[1]][,1])) {
+          countTotal <- NA
+        }  
         # Run element(s) exist
-        else {
+        else if (length(byStation$pcpn_in_run[1][[1]][, 1]) > 1) {
           countTotal <-
             length(byStation$pcpn_in_run[1][[1]][, 1][as.numeric(byStation$pcpn_in_run[1][[1]][, 1]) >= runLength])
         }
@@ -1601,9 +1601,9 @@ getStationMetrics <-
                          filePathAndRootname)
       }
       else if (metric == "CSP3") {
-        metricSource <-
+        metricSource <- lapply(climateStations, function(x){
           getWxObservations(
-            climateStations = climateStations,
+            climateStations = x,
             climateParameters = cParam,
             sdate = sdate,
             edate = edate,
@@ -1613,14 +1613,16 @@ getStationMetrics <-
             maxMissing = 10,
             metric = metric
           )
-        if (typeof(metricSource) == "list") {
-          metricData <-
-            getRunCounts(rawCounts = metricSource,
+        })
+        metricSourceCombo <- do.call(rbind, metricSource)
+        metricSourceComboCleaned <- metricSourceCombo[metricSourceCombo$uid != "no data available",]
+        metricData <-
+          getRunCounts(rawCounts = metricSourceComboCleaned,
                          runLength = 7,
                          metric = metric)
-          outputMetricFile(metricData, metric,
+        outputMetricFile(metricData, metric,
                            filePathAndRootname)
-        }
+        
       }
       else {
         metricSource <- sapply(climateStations, function(x) {
@@ -1654,6 +1656,7 @@ getStationMetrics <-
 
 #' cleanNestedList extracts sublists from station metric responses
 #' @param metricResponse
+#' @export
 #'
 cleanNestedList <- function(l) {
   df <- NULL
@@ -1694,13 +1697,14 @@ cleanNestedList <- function(l) {
       }
     }
     else if (typeof(x[, 1]) == "list") { # run object from sapply request
-      for (i in 1:length(x[1, ]))
+      for (i in 1:length(x[1, ])) {
         if (is.data.frame(df)) {
           df <- rbind(df, as.data.frame(x[, i]))
         }
-      else {
-        df <- as.data.frame(x[, i])
-      }
+        else {
+          df <- as.data.frame(x[, i])
+        }
+    }
     }
   }
   
@@ -1722,6 +1726,7 @@ cleanNestedList <- function(l) {
 #' @param metricData Data frame to output
 #' @param metricName Metric name
 #' @param filePathAndRootName Output path and folder
+#' @export
 #' 
 outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
   outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_METRIC.csv"), sep = "")
