@@ -616,7 +616,7 @@
     "CreateDate": "2018-01-09 00:00:00.0000000"
   }
 ], "npsPRISMPaths": {
-  "monthlyRasters": "X:\\NRSSData\\ReferenceData\\PRISM\\rasters",
-  "normalsRasters": "X:\\ProjectData\\NRSS_IMD\\EnvironmentalSettings\\Climate\\Data\\PRISM_MonthlyNormals"
+  "monthlyRasters": "X:\\NRSSData\\ReferenceData\\PRISM\\PRISM_LT81m_800m",
+  "normalsRasters": "X:\\NRSSData\\ReferenceData\\PRISM\\1981_2010_normals"
 }
 }

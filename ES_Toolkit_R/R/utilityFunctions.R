@@ -763,13 +763,15 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
   return(featurePoly)
 }
 
-#' getNPSPRISM
+#' getMetricGrids
 #' 
-#' NPS only: function retrieves cropped (clipped) 800m PRISM rasters from shared drive.
-#' License for source 800m PRISM data precludes outputting cropped source rasters.
-#' Requires rgdal library.
+#' NPS intranet only: function retrieves cropped (clipped) 800m PRISM rasters from shared drive.
+#' License for source LT81m 800m PRISM data precludes outputting cropped source rasters.
 #' 
-#' For the AOA, outputs raster stack containing metric layers (cropped, masked) and writes out metric and cropped 30 year normal GeoTIFF files.
+#' \emph{Do not use for multi-decadal trend calculations.} See the \href{http://prism.oregonstate.edu/documents/PRISM_datasets.pdf}{PRISM datasets} document for more details.
+#' Requires rgdal library and NPS intranet connection.
+#' 
+#' For the AOA, returns a raster stack containing metric layers (cropped, masked) and writes out a CSV file of metric raster statistics and PNG-formatted plots for metric, cropped PRISM 800m source, and cropped 30 year normal rasters.
 #' 
 #' @param featurePolygon SpatialPolygon object; for area of analysis, use getAOAFeature()
 #' @param metric (required) One climate metric from the IMD Environmental Setting protocol
@@ -778,7 +780,7 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 #' @param edate edate (optional) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range. If missing, defaults to end of previous calendar year.
 #' @param filePath (optional) full file path for raster output
 #' @export
-getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL, filePath=NULL) {
+getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL, filePath=NULL) {
   metricPrefix <- NULL
   srcStack <- stack()
   srcStackFiles <- c()
@@ -802,6 +804,8 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
     else {
       metricPrefix <- "tmax"
     }
+    srcFilePrefix <- gsub("XXX", metricPrefix, "prism_XXX_us_30s") #LT81m naming convention
+    #srcFilePrefix <- gsub("XXX", metricPrefix, "cai_XXX_us_us_30s") # AN81m naming convention
     
     acisLookup <-
       fromJSON(system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit"), flatten = TRUE) # assumes placement in package inst subfolder
@@ -810,7 +814,7 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
     normalsPRISMPath <- acisLookup$npsPRISMPaths$normalsRasters
     gridSource = "PRISM"
     fileNameRoot <- paste(unitCode, metric, sep = "_")
-    srcFolder <- paste(monthlyPRISMPath, metricPrefix, sep = "\\")
+    srcFolder <- paste(monthlyPRISMPath, paste(metricPrefix, "monthly", sep = "\\"), sep = "\\")
     normalsRoot <- gsub("XXX", metricPrefix, "PRISM_XXX_30yr_normal_800mM2_")
     expandBBox <- c(-0.02, 0.02, -0.02, 0.02)
     
@@ -833,9 +837,22 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
       outPlotPrefix <- paste(unitCode, metricPrefix, sep = "_")
       for (x in 1:length(dateList)) {
         srcRasterPattern <-
-          paste(srcFolder,
-                paste(metricPrefix, as.character(dateList[x]), sep = ""),
-                sep = "\\")
+          paste(
+            paste(
+              srcFolder,
+              as.character(dateList[x]),
+              sep = "\\"
+            ),
+        paste(
+            srcFilePrefix,
+            as.character(dateList[x]),
+            sep = "_"
+          ), sep = "\\")
+        
+        # srcRasterPattern <-
+        #   paste(srcFolder,
+        #         paste(metricPrefix, as.character(dateList[x]), sep = ""),
+        #         sep = "\\")
         
         if(!is.null(filePath)) {
           outRasterPattern <-
@@ -855,18 +872,24 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
           #srcStackFileNames <- append(srcStackFileNames, paste("outSource", as.character(mth), sep = "_"))
           #normalStackFileNames <- append(normalStackFileNames, paste("outNormal", as.character(mth), sep = "_"))
           #outNormalStackName <- paste("outNormal", as.character(mth), sep = "_")
-          if (dateList[x] < 2011) {
-            # Arc/INFO Grid format
-            srcRaster <-
-              paste(srcRasterPattern, as.character(mth), sep = "_")
-          }
-          else {
-            # GeoTIFF format
-            srcRaster <-
-              paste(paste(srcRasterPattern, as.character(mth), sep = "_"),
-                    ".tif",
-                    sep = "")
-          }
+          
+          # BIL format
+          srcRaster <-
+            paste(paste(srcRasterPattern, as.character(mth), sep = ""),
+                  ".bil",
+                  sep = "")
+          # if (dateList[x] < 2011) {
+          #   # Arc/INFO Grid format
+          #   srcRaster <-
+          #     paste(srcRasterPattern, as.character(mth), sep = "_")
+          # }
+          # else {
+          #   # GeoTIFF format
+          #   srcRaster <-
+          #     paste(paste(srcRasterPattern, as.character(mth), sep = "_"),
+          #           ".tif",
+          #           sep = "")
+          # }
           outRaster <- paste(paste(outRasterPattern, as.character(mth), sep = "_"),  ".tif", sep = "")
           
           # Crop and save
@@ -960,6 +983,10 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
       
       
       print("Finished metric")
+      # Output CSV file of raster statistics
+      getGridStatistics(metricStack, metric, filePath)
+      print("Created metric statistics CSV file")
+      
       # Output summary source and metric plots, by year
       for(y in 1:length(dateList)) {
         if (y == 1) {
@@ -988,6 +1015,118 @@ getNPSPRISM <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=NULL
   }
   return(metricStack)
 }
+
+#' getGridStatistics
+#' 
+#' Generates a CSV file containing raster statistics from a raster stack.
+#' @param rasStack (required) RasterStack object
+#' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
+#' @param filePath (optional) full file path for CSV output
+#' @export
+#' 
+getGridStatistics <- function(rasStack, metric=NULL, filePath=NULL) {
+  fileNameRoot <- "RasterStatistics"
+  
+  if (is.null(rasStack)) {
+    stop("### ERROR: rasStack is required. ###")
+  }
+  else {
+    lyrCount <- nlayers(rasStack)
+    outNames <- c("cellCount","min","max", "mean", "sd","var")
+    
+    dfResponse0 <- NULL
+    nArray <- NULL
+    cArray <- NULL
+    minArray <- NULL
+    maxArray <- NULL
+    meanArray <- NULL
+    sdArray <- NULL
+    varArray <- NULL
+    
+    nArray <- vector(mode = "character", length = lyrCount)
+    cArray <- vector(mode = "integer", length = lyrCount)
+    minArray <- vector(mode = "numeric", length = lyrCount)
+    maxArray <- vector(mode = "numeric", length = lyrCount)
+    meanArray <- vector(mode = "numeric", length = lyrCount)
+    sdArray <- vector(mode = "numeric", length = lyrCount)
+    varArray <- vector(mode = "numeric", length = lyrCount)
+    
+    if(!is.null(metric)) {
+      # Parse raster names to get unit code, parameter, and year
+      fileNameRoot <- paste(gsub("Raster","MetricRaster", fileNameRoot), metric, sep = "_")
+      metricOutNames <- c("name", "metric", "parameter","date")
+      outNames <- c(metricOutNames, outNames)
+      mArray <- NULL
+      pArray <- NULL
+      dArray <- NULL
+      #nameArray <- names(rasStack)
+      
+      # Additonal vectors if metric rasters    
+      mArray <- vector(mode = "character", length = lyrCount)
+      pArray <- vector(mode = "character", length = lyrCount)
+      dArray <- vector(mode = "character", length = lyrCount)
+      
+      for (i in 1:lyrCount) {
+        # Get unit code, parameter and date
+        nArray[i] <- substr(names(rasStack[[i]]), 1, 4)
+        mArray[i] <- metric
+        pStart <- regexpr("_", names(rasStack[[1]]))[1] + 1
+        pEnd <- regexpr("_departure_", names(rasStack[[1]]))[1] - 5
+        pArray[i] <- substr(names(rasStack[[i]]), pStart, pEnd)
+        dYear <- substr(names(rasStack[[i]]), pEnd+1, pEnd+4)
+        dMth <- substr(names(rasStack[[i]]), pEnd+16, nchar(names(rasStack[[i]])))
+        
+        if (nchar(dMth) == 1) {
+          dMth <- paste("0", dMth, sep = "")
+        }
+        dArray[i] <- paste(dYear, dMth, sep = "-")
+      }
+      dfResponse0 <- cbind(nArray, mArray, pArray, dArray)
+      
+    }
+    else if(is.null(metric)) {
+      outNames <- c("name", outNames)
+      for (i in 1:lyrCount) {
+        # Get layer name
+        nArray[i] <- names(rasStack[[i]])
+      }
+    }
+    
+    for (i in 1:lyrCount) {
+      # Get cell statistics
+      lyrData <- rasterToPoints(rasStack[[i]])
+      cArray[i] <- nrow(rasStack[[i]]) * ncol(rasStack[[i]])
+      minArray[i] <- min(lyrData[, 3])
+      maxArray[i] <- max(lyrData[, 3])
+      meanArray[i] <- mean(lyrData[, 3])
+      sdArray[i] <- sd(lyrData[, 3])
+      varArray[i] <- var(lyrData[, 3])
+    }
+    
+    dfResponse0 <- cbind(dfResponse0, as.numeric(cArray), as.numeric(minArray),as.numeric(maxArray),as.numeric(meanArray),as.numeric(sdArray),as.numeric(varArray))
+    dfResponse <- as.data.frame(dfResponse0)
+    names(dfResponse) <- outNames
+    
+    # Write out CSV file
+    if (!is.null(filePath)) {
+      outFile <-
+        paste(filePath,
+            paste(fileNameRoot, format(Sys.Date(), "%Y%m%d"), sep = "_"),
+            sep = "\\")
+    }
+    else {
+      outFile <- paste(fileNameRoot, format(Sys.Date(), "%Y%m%d"), sep = "_")
+    }
+    write.csv(
+      dfResponse,
+      file = paste(outFile, ".csv", sep = ""),
+      sep = ",",
+      row.names = FALSE,
+      quote = TRUE
+    )
+  }
+}
+
 
 #' getProtocolStations function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
 #' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
