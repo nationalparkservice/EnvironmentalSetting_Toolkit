@@ -701,7 +701,9 @@ getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
   return(bbox)
 }
 
-#' getUSHCN retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
+#' getUSHCN 
+#' 
+#' Retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
 #' 
 #' @param responseList list of response array of requested station codes (sid)
 #' @export getUSHCN
@@ -738,7 +740,8 @@ getUSHCN <- function (responseList) {
 }
 
 #' getAOAFeature 
-#' NPS only: function retrieves GeoJSON-formatted area of analysis (AOA) polygon in the 
+#' 
+#' Function retrieves a GeoJSON-formatted area of analysis (AOA) polygon in the 
 #' NAD83 geographic coordinate reference system (CRS). 
 #' @param unitCode unitCode One NPS unit code as a string
 #' @param aoaExtent aoaExtent one of park, km3 or km30 as a string. Default is "km30"
@@ -765,20 +768,20 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 
 #' getMetricGrids
 #' 
-#' NPS intranet only: function retrieves cropped (clipped) 800m PRISM rasters (LT81m) from shared drive.
+#' \emph{NPS intranet only}: for CONUS areas, function retrieves cropped (clipped) 800m PRISM rasters (LT81m) from shared drive.
 #' Source 800m rasters are used to generate metric grids (precipitation: percent of 30-yr normal, 
 #' temperature: departure from normal).
+#' From the PRISM documentation for the LT81m source: "Emphasis is on long-term consistency, and uses only station networks having at least
+#' some stations with ≥ 20 years of data." 
 #' License for source LT81m 800m PRISM data precludes outputting cropped source rasters.
 #' 
-#' 
 #' \emph{Do not use for multi-decadal trend calculations.} 
-#' From the PRISM documentation: "Emphasis is on long-term consistency, and uses only station networks having at least
-#' some stations with ≥ 20 years of data." 
 #' See the \href{http://prism.oregonstate.edu/documents/PRISM_datasets.pdf}{PRISM datasets} document for more details.
+#' 
 #' Requires rgdal library and NPS intranet connection.
 #' 
 #' For the AOA, returns a raster stack containing metric layers (cropped, masked) and writes out a CSV file of metric raster statistics and PNG-formatted plots for metric, 
-#' cropped PRISM 800m source, and, optionally, cropped 30 year normal rasters.
+#' cropped PRISM 800m source and, optionally, cropped 30 year normal rasters.
 #' 
 #' @param featurePolygon SpatialPolygon object; for area of analysis, use getAOAFeature()
 #' @param metric (required) One climate metric from the IMD Environmental Setting protocol
@@ -1169,7 +1172,9 @@ getGridStatistics <- function(rasStack, metric=NULL, filePath=NULL) {
 }
 
 
-#' getProtocolStations function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
+#' getProtocolStations 
+#' 
+#' NPS Only: Function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
 #' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
 #' @param dbName database name
 #' @param dbTable table name containing monitoring locations
@@ -1192,7 +1197,9 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
   return(res)
 }
 
-#' getDepartureCounts function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
+#' getDepartureCounts 
+#' 
+#' Function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
 #' @param rawDepartures Daily departures for a climate parameter (use getWxObservations() with normal="departure" to generate)
 #' @param duration Duration of summarization period. Default is yearly ("yly"). Use "mly" for monthly.
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
@@ -1290,7 +1297,9 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
   return(dfResponse)
 }
 
-#' getRunCounts summarizes raw run response into a data frame with year and count of runs >= specified # of days
+#' getRunCounts 
+#' 
+#' Summarizes raw run response into a data frame with year and count of runs >= specified # of days
 #' @param rawCounts run counts for a climate parameter (use getWxObservations() with a reduce code of 'run*' to generate)
 #' @param runLength number of run days used to filter raw run counts
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
@@ -1380,7 +1389,9 @@ getRunCounts <-
     return(dfResponse)
   }
 
-#' getStationMetrics requests Environmental Setting protocol metrics for a set of stations
+#' getStationMetrics 
+#' 
+#' Requests Environmental Setting protocol metrics for a set of stations
 #' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
 #' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.

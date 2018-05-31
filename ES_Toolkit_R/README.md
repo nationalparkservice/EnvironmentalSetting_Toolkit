@@ -2,18 +2,21 @@ Tools supporting the NPS IMD Environmental Setting protocol.
 
 #### Overview ####
 
-This packaage provides data access via ACIS web services (http://www.rcc-acis.org/docs_webservices.html) to station information and station data that:
+This package provides data access via ACIS web services (http://www.rcc-acis.org/docs_webservices.html) to station information and station data that:
 
 + Supports basic data request functions:
 
   * findStation
   * requestData
 
-+ Formats outputs consistently
++ Formats outputs consistently:
 
   * Limits alteration to data returned from ACIS web services
+  * Returns data frames or spatially referenced raster stacks
   
-The Environmental setting Toolkit is the next iteration of and was forked from the IM_Climate toolkit created in 2016-2017. That toolkit can be found here: (https://github.com/IMDProjects/IM_Climate)
+In addition, the package contains convenience functions for requesting Environmental Setting metrics, both the station-based metrics sourced from ACIS and the raster-based metrics sourced from 800m PRISM or climate indexes. 
+
+The Environmental Setting Toolkit is the next iteration of and was forked from the IM_Climate toolkit created in 2016-2017. That toolkit can be found here: (https://github.com/IMDProjects/IM_Climate)
 
 #### Draft Development Timeline
 
@@ -25,14 +28,23 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 		Station data (departures from normals) - standard and custom AOAs
 
 	Version 2.1 - April 2018
-		AOA polygon clipping (generic gridded metrics)
+		AOA polygon-based metrics (departures from normals gridded metrics using 800m PRISM data)
+		Enhancements/bug fixes for station-based metrics
 
 	Version 2.2 - June 2018
-		AOA polygon clipping (departures from normals gridded metrics)
+	  Mirror capabilities for Python version of Toolkit
 		Index-based metrics
+		Upload polygon
 		
 	Version 2.3 - August 2018
-		Generic capabilities: add DayMet/NASA NEX as sources, upload polygon
+		Generic capabilities: add DayMet/NASA NEX as sources 
+  
+
+#### Release 2.1 - 20180531 ####
+[Release notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases)
+
+For protocol metric examples, see the two RMarkdown-produced PDFs: ES_StationMetricExamples.pdf and ES_GriddedMetricExamples.pdf.
+
 		
 #### Release 2.0 - 20180322 ####
 

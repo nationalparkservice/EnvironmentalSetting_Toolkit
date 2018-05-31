@@ -13,15 +13,20 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 		Station data (departures from normals) - standard and custom AOAs
 
 	Version 2.1 - April 2018
-		AOA polygon clipping (generic gridded metrics)
+		AOA polygon-based metrics (departures from normals gridded metrics using 800m PRISM data)
+		Enhancements/bug fixes for station-based metrics
 
 	Version 2.2 - June 2018
-		AOA polygon clipping (departures from normals gridded metrics)
+	  Mirror capabilities for Python version of Toolkit
 		Index-based metrics
+		Upload polygon
 		
 	Version 2.3 - August 2018
-		Generic capabilities: add DayMet/NASA NEX as sources, upload polygon
+		Generic capabilities: add DayMet/NASA NEX as sources 
   
+
+#### Release 2.1 - 20180531 ####
+[Release notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases)
 
 #### Release 2.0 - 20180322 ####
 

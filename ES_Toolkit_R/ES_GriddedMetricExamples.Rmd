@@ -1,0 +1,113 @@
+---
+title: "Environmental Setting Protocol - Example Grid Metrics"
+author: "Lisa Nelson, NPS Inventory and Monitoring Division"
+date: "May 31, 2018"
+output:
+  word_document: default
+  pdf_document:
+    keep_tex: yes
+    latex_engine: xelatex
+  html_document: default
+geometry: margin=0.5in
+mainfont: Arial
+fontsize: 12pt
+documentclass: article
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=80))
+library(EnvironmentalSettingToolkit)
+library(ggplot2)
+library(rgdal)
+```
+
+The draft Environmental Setting protocol calculates four types of climate metrics using the EnvironmentalSetting toolkit <https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit>. 
+
+* station-based temperature and precipitation
+* station-based departures from normal temperature and precipitation
+* **grid-based departures from normal temperature and precipitation**
+* index-based precipitation and drought
+
+The first two metric types are calculated for all stations that intersect the 30km areas of analysis for parks while the latter two metric types are calculated by area of analysis (AOA) bounding box extent. This notebook shows the third metric type for the 30km AOA around Agate Fossil Beds NM (AGFO). The monthly interpolated source grids and 30-year normal grids are from PRISM - the Parameter-elevation Relationships on Independent Slopes Model (<http://prism.oregonstate.edu/>). NPS has a license for 800m PRISM data, including the LT81m dataset used as input for deriving the metrics. The Toolkit outputs metric and, optionally, normal rasters. The license precludes direct output of the source LT81m data.
+
+Environmental Setting protocol metrics are shown below.
+
+```{r results = "asis", echo=FALSE}
+metrics <- read.csv("inst/ESParameters.csv")[ ,1:2]
+
+knitr::kable(metrics, type = "pdf")
+```
+
+# Gridded Temperature and Precipitation Metrics
+Gridded metric requests require the *rgdal* library (<https://cran.r-project.org/web/packages/rgdal/rgdal.pdf>). For formal metric requests for the protocol, the *getGriddedMetrics()* function is used with input from the *getAOAFeature()* function which retrieves the SpatialPolygon for the AOA from the standard feature service for AOAs: <https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA/FeatureServer>.
+
+Note the *getGriddedMetrics()* function accepts any SpatialPolygon with a WGS84 or NAD83 geographic coordinate system spatial reference. 
+
+Exploratory plots are shown in this notebook and are written out as PNG files by the Toolkit *getGriddedMetrics()* function. In addition, a CSV file containing metric raster summary statistics is generated. 
+
+*For all metrics, values returned are raw data.* 
+
+## Get Feature Polygon
+``` {r message=FALSE, warning=FALSE, error=FALSE, tidy = TRUE}
+agfoAOA <- getAOAFeature(unitCode = "AGFO")
+
+agfoAOA
+```
+
+## Temperature Metric Example
+``` {r eval=FALSE, message=FALSE, warning=FALSE, error=FALSE, tidy = TRUE}
+# Get CGT1, the monthly departure of mean temperature from 30-year climate normal (1981-2010), for 2016. 
+agfoTemperatureMetricStack <- getMetricGrids(featurePolygon = agfoAOA, metric = "CGT1", unitCode = "AGFO", sdate = "2016", edate = "2016", includeNormals = TRUE)
+str(agfoTemperatureMetricStack)
+
+```
+
+``` {r echo=FALSE, fig.cap = "CGT1 Metric - Monthly Departure (deg F) from 30-year normal mean temperature", out.width = "80%"}
+
+knitr::include_graphics(path="AGFO_tmean_2016_Metric.png")
+```
+
+``` {r echo=FALSE, fig.cap = "Source LT81m Monthly Mean Temperature (deg C) Grids", out.width = "80%"}
+
+knitr::include_graphics(path="AGFO_tmean_2016_Source.png")
+```
+
+``` {r echo=FALSE, fig.cap = "Norm81m Monthly Normal Mean Temperature (deg C) Grids", out.width = "80%"}
+
+knitr::include_graphics(path="AGFO_tmean_Normals.png")
+```
+
+```{r echo=FALSE, results = "asis", out.width = "80%"}
+cgt1Stats <- read.csv("MetricRasterStatistics_CGT1_20180529.csv")
+
+knitr::kable(cgt1Stats, type = "pdf", caption = "Monthly Summary Statistics for Departure Metric Rasters")
+```
+
+## Precipitation Metric Example
+Note: Index-based metrics will be added in a subsequent version of the Toolkit.
+
+``` {r eval=FALSE, message=FALSE, warning=FALSE, error=FALSE, tidy = TRUE}
+# Get CGP1, the monthly percent of 30-year climate normal (1981-2010) mean temperature, for 2016. 
+agfoPrecipitationMetricStack <- getMetricGrids(featurePolygon = agfoAOA, metric = "CGP1", unitCode = "AGFO", sdate = "2016", edate = "2016", includeNormals = TRUE)
+str(agfoPrecipitationMetricStack)
+
+```
+
+``` {r echo=FALSE, fig.cap = "CGP1 Metric - Monthly Percent of 30-year normal precipitation", out.width = "80%"}
+knitr::include_graphics(path="AGFO_ppt_2016_Metric.png")
+```
+
+``` {r echo=FALSE, fig.cap = "Source LT81m Monthly Precipitation (mm) Grids", out.width = "80%"}
+
+knitr::include_graphics(path="AGFO_ppt_2016_Source.png")
+```
+
+``` {r echo=FALSE, fig.cap = "Norm81m Monthly Normal Precipitation (mm) Grids", out.width = "80%"}
+
+knitr::include_graphics(path="AGFO_ppt_Normals.png")
+```
+\pagebreak
+```{r echo=FALSE, results = "asis", out.width = "80%"}
+cgp1Stats <- read.csv("MetricRasterStatistics_CGP1_20180529.csv")
+
+knitr::kable(cgp1Stats, type = "pdf", caption = "Monthly Summary Statistics for Percent Normal Metric Rasters")
+```

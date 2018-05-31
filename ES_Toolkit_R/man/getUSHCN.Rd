@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilityFunctions.R
 \name{getUSHCN}
 \alias{getUSHCN}
-\title{getUSHCN retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).}
+\title{getUSHCN}
 \usage{
 getUSHCN(responseList)
 }
@@ -10,6 +10,6 @@ getUSHCN(responseList)
 \item{responseList}{list of response array of requested station codes (sid)}
 }
 \description{
-getUSHCN retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
+Retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
 }
 
