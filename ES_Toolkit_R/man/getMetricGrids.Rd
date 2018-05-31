@@ -23,7 +23,7 @@ getMetricGrids(featurePolygon, metric, unitCode, sdate = NULL, edate = NULL,
 \item{filePath}{(optional) full file path for raster output}
 }
 \description{
-\emph{NPS intranet only}: function retrieves cropped (clipped) 800m PRISM rasters (LT81m) from shared drive.
+\emph{NPS intranet only}: for CONUS areas, function retrieves cropped (clipped) 800m PRISM rasters (LT81m) from shared drive.
 Source 800m rasters are used to generate metric grids (precipitation: percent of 30-yr normal, 
 temperature: departure from normal).
 From the PRISM documentation for the LT81m source: "Emphasis is on long-term consistency, and uses only station networks having at least
