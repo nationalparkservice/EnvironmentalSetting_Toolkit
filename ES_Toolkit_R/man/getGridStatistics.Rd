@@ -4,12 +4,15 @@
 \alias{getGridStatistics}
 \title{getGridStatistics}
 \usage{
-getGridStatistics(rasStack, metric = NULL, filePath = NULL)
+getGridStatistics(rasStack, metric = NULL, unitCode = NULL,
+  filePath = NULL)
 }
 \arguments{
 \item{rasStack}{(required) RasterStack object}
 
 \item{metric}{(optional) One climate metric from the IMD Environmental Setting protocol}
+
+\item{unitCode}{(optional) One unit code as a string}
 
 \item{filePath}{(optional) full file path for CSV output}
 }

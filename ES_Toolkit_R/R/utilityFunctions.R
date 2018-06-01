@@ -753,7 +753,7 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
          "km3" = "https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA_WebMercator/FeatureServer/1",
          "km30" = "https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA_WebMercator/FeatureServer/2"
     )
-  featureServicePathInfo <- "query?where=UNIT_CODE+%3D+%27XXXX%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Meter&relationParam=&outFields=*&returnGeometry=true&maxAllowableOffset=&geometryPrecision=&outSR=&gdbVersion=&returnDistinctValues=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&multipatchOption=&resultOffset=&resultRecordCount=&f=geojson"
+  featureServicePathInfo <- "query?where=UNIT_CODE+%3D+%27XXXX%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Meter&relationParam=&outFields=*&returnGeometry=true&maxAllowableOffset=&geometryPrecision=&outSR=4326&gdbVersion=&returnDistinctValues=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&multipatchOption=&resultOffset=&resultRecordCount=&f=geojson"
   
   featureServiceRequest <- paste(as.character(featureServiceURLs[featureServiceURLs = aoaExtent]), gsub("XXXX", unitCode, featureServicePathInfo), sep = "/" )
   print(featureServiceRequest)
@@ -910,6 +910,7 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
           outRaster <- paste(paste(outRasterPattern, as.character(mth), sep = "_"),  ".tif", sep = "")
           
           # Crop and save
+          rasterCrop <- NULL
           if(!compareCRS(featurePolygon, raster(srcRaster))) {
             cropPolygon <- spTransform(featurePolygon, crs(raster(srcRaster)))
           }
@@ -936,9 +937,11 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
           #print(paste("Finished month", as.character(mth), sep = " "))
         } # end of by month
         print(paste("Finished year", as.character(dateList[x]), sep = " "))
+        # Replicate the stack rather than re-clipping; adds an extra 12
+        if (x > 1) {
+          normalStack <- stack(normalStack, normalStack)
+        }
       } # end by year
-      # Replicate the stack rather than re-clipping
-      normalStack <- stack(normalStack, normalStack)
       
       if(outputNormals == TRUE) {
         # Output normals plot
@@ -955,6 +958,8 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
       
       #print(nlayers(srcStack))
       #print(nlayers(normalStack))
+      #print(str(extent(srcStack[[1]])))
+      #print(str(extent(normalStack[[1]])))
       print("Starting metric")
       
       # Apply metric functions
@@ -1011,7 +1016,7 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
       
       print("Finished metric")
       # Output CSV file of raster statistics
-      getGridStatistics(metricStack, metric, filePath)
+      getGridStatistics(metricStack, metric, unitCode, filePath)
       print("Created metric statistics CSV file")
       
       # Output summary source and metric plots, by year
@@ -1058,10 +1063,11 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
 #' Generates a CSV file containing raster statistics from a raster stack.
 #' @param rasStack (required) RasterStack object
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
+#' @param unitCode (optional) One unit code as a string
 #' @param filePath (optional) full file path for CSV output
 #' @export
 #' 
-getGridStatistics <- function(rasStack, metric=NULL, filePath=NULL) {
+getGridStatistics <- function(rasStack, metric=NULL, unitCode=NULL, filePath=NULL) {
   fileNameRoot <- "RasterStatistics"
   
   if (is.null(rasStack)) {
@@ -1154,13 +1160,26 @@ getGridStatistics <- function(rasStack, metric=NULL, filePath=NULL) {
     
     # Write out CSV file
     if (!is.null(filePath)) {
+      if (!is.null(unitCode)) {
       outFile <-
         paste(filePath,
-            paste(fileNameRoot, format(Sys.Date(), "%Y%m%d"), sep = "_"),
+            paste(paste(unitCode, fileNameRoot, sep = "_"), format(Sys.Date(), "%Y%m%d"), sep = "_"),
             sep = "\\")
+      }
+      else {
+        outFile <-
+          paste(filePath,
+                paste(fileNameRoot, format(Sys.Date(), "%Y%m%d"), sep = "_"),
+                sep = "\\")
+      }
     }
     else {
-      outFile <- paste(fileNameRoot, format(Sys.Date(), "%Y%m%d"), sep = "_")
+      if (!is.null(unitCode)) {
+        outFile <- paste(fileNameRoot, format(Sys.Date(), "%Y%m%d"), sep = "_")
+      }
+      else {
+        outFile <- paste(paste(unitCode, fileNameRoot, sep = "_"), format(Sys.Date(), "%Y%m%d"), sep = "_")
+      }
     }
     write.csv(
       dfResponse,
