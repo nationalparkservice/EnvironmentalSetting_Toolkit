@@ -1022,8 +1022,7 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
           sStart <- y
         }
         else if (y > 1 && y < length(dateList)) {
-          #sStart <- (countLayers - (countRange * x)) + 1
-          sStart <- (countInterval * y) + 1
+          sStart <- (countInterval * (y - 1)) + 1
         }
         else if (y == length(dateList)) {
           sStart <- (countLayers - countInterval) + 1
