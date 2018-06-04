@@ -753,7 +753,7 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
          "km3" = "https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA_WebMercator/FeatureServer/1",
          "km30" = "https://irmaservices.nps.gov/arcgis/rest/services/LandscapeDynamics/LandscapeDynamics_AOA_WebMercator/FeatureServer/2"
     )
-  featureServicePathInfo <- "query?where=UNIT_CODE+%3D+%27XXXX%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Meter&relationParam=&outFields=*&returnGeometry=true&maxAllowableOffset=&geometryPrecision=&outSR=4326&gdbVersion=&returnDistinctValues=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&multipatchOption=&resultOffset=&resultRecordCount=&f=geojson"
+  featureServicePathInfo <- "query?where=UNIT_CODE+%3D+%27XXXX%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Meter&relationParam=&outFields=*&returnGeometry=true&maxAllowableOffset=&geometryPrecision=&outSR=4269&gdbVersion=&returnDistinctValues=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&multipatchOption=&resultOffset=&resultRecordCount=&f=geojson"
   
   featureServiceRequest <- paste(as.character(featureServiceURLs[featureServiceURLs = aoaExtent]), gsub("XXXX", unitCode, featureServicePathInfo), sep = "/" )
   print(featureServiceRequest)
@@ -911,13 +911,10 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
           
           # Crop and save
           rasterCrop <- NULL
-          if(!compareCRS(featurePolygon, raster(srcRaster))) {
-            cropPolygon <- spTransform(featurePolygon, crs(raster(srcRaster)))
-          }
-          else {
-            cropPolygon <- featurePolygon
-          }
-          aoaBBox <- c(t(bbox(agfoAOA)))
+          # spTranform enforces datum
+          cropPolygon <- spTransform(featurePolygon, crs(raster(srcRaster)))
+          
+          aoaBBox <- c(t(bbox(cropPolygon)))
           aoaBBoxExtent <- extent(aoaBBox + expandBBox)
           rasterCrop <- crop(raster(srcRaster), aoaBBoxExtent)
           crs(rasterCrop) <- acisLookup$gridSources[gridSource][[1]]$projectionCRS
