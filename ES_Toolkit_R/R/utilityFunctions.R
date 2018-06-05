@@ -936,9 +936,9 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
           #print(paste("Finished month", as.character(mth), sep = " "))
         } # end of by month
         print(paste("Finished year", as.character(dateList[x]), sep = " "))
-        # Replicate the stack rather than re-clipping; adds an extra 12
+        # Replicate the stack rather than re-clipping
         if (x > 1) {
-          normalStack <- stack(normalStack, normalStack)
+          normalStack <- stack(normalStack, normalStack[[1:12]])
         }
       } # end by year
       
