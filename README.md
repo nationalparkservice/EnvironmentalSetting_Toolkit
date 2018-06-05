@@ -15,6 +15,9 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 	Version 2.1 - April 2018
 		AOA polygon-based metrics (departures from normals gridded metrics using 800m PRISM data)
 		Enhancements/bug fixes for station-based metrics
+	
+	Version 2.1.1 - June 2018
+	  Performance enhancements for gridded metric generation
 
 	Version 2.2 - June 2018
 	  Mirror capabilities for Python version of Toolkit
