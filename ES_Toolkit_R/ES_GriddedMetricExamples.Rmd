@@ -56,7 +56,7 @@ agfoAOA
 ## Temperature Metric Example
 ``` {r eval=FALSE, message=FALSE, warning=FALSE, error=FALSE, tidy = TRUE}
 # Get CGT1, the monthly departure of mean temperature from 30-year climate normal (1981-2010), for 2016. 
-agfoTemperatureMetricStack <- getMetricGrids(featurePolygon = agfoAOA, metric = "CGT1", unitCode = "AGFO", sdate = "2016", edate = "2016", includeNormals = TRUE)
+agfoTemperatureMetricStack <- getMetricGrids(featurePolygon = agfoAOA, metric = "CGT1", unitCode = "AGFO", sdate = "2016", edate = "2016", outputNormals = TRUE)
 str(agfoTemperatureMetricStack)
 
 ```
@@ -87,7 +87,7 @@ Note: Index-based metrics will be added in a subsequent version of the Toolkit.
 
 ``` {r eval=FALSE, message=FALSE, warning=FALSE, error=FALSE, tidy = TRUE}
 # Get CGP1, the monthly percent of 30-year climate normal (1981-2010) mean temperature, for 2016. 
-agfoPrecipitationMetricStack <- getMetricGrids(featurePolygon = agfoAOA, metric = "CGP1", unitCode = "AGFO", sdate = "2016", edate = "2016", includeNormals = TRUE)
+agfoPrecipitationMetricStack <- getMetricGrids(featurePolygon = agfoAOA, metric = "CGP1", unitCode = "AGFO", sdate = "2016", edate = "2016", outputNormals = TRUE)
 str(agfoPrecipitationMetricStack)
 
 ```

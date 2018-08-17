@@ -761,7 +761,7 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
   # Have to save to temp file
   jsonFeature <- download.file(featureServiceRequest, tempOutput, mode = "w")
   # For rgdal 1.2+, layer (format) does not need to be specified
-  featurePoly <- readOGR(dsn = tempOutput)
+  featurePoly <- readOGR(dsn = tempOutput, layer = "OGRGeoJSON")
   #featurePoly <- readOGR(dsn = tempOutput, layer = "OGRGeoJSON")
   
   
@@ -1037,8 +1037,13 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
         else if (is.null(filePath)) {
           png(filename = paste(paste(outPlotPrefix, as.character(dateList[y]), sep = "_"), "_Source.png", sep = ""), width = 1950, height = 2700, res = 300)
         }
-        
+        # Simplify names to enhance readability
+        sNames <- names(srcStack)
+        sNamesSimple <-  gsub("_us_30s","", gsub("_prism", "", names(srcStack)))
+        names(srcStack) <- sNamesSimple
         plot(srcStack[[sStart:sEnd]])
+        names(srcStack) <- sNames
+        #raster::plot(srcStack[[sStart:sEnd]], main = gsub("_", " PRISM ", outPlotPrefix))
         #plot(cropPolygon, add = TRUE)
         dev.off()
         if(!is.null(filePath)) {
@@ -1047,7 +1052,12 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
         else if (is.null(filePath)) {
           png(filename = paste(paste(outPlotPrefix, as.character(dateList[y]), sep = "_"), "_Metric.png", sep = ""), width = 1950, height = 2700, res = 300)
         }
+        # Simplify names to enhance readability
+        mNames <- names(metricStack)
+        mNamesSimple <-  gsub(paste(unitCode,"_",sep = ""), "", (gsub("_us_30s","", gsub("_prism", "", names(metricStack)))))
+        names(metricStack) <- mNamesSimple
         plot(metricStack[[sStart:sEnd]])
+        names(metricStack) <- mNames
         #plot(cropPolygon, add = TRUE)
         dev.off()
       }
