@@ -761,7 +761,7 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
   # Have to save to temp file
   jsonFeature <- download.file(featureServiceRequest, tempOutput, mode = "w")
   # For rgdal 1.2+, layer (format) does not need to be specified
-  featurePoly <- readOGR(dsn = tempOutput, layer = "OGRGeoJSON")
+  featurePoly <- readOGR(dsn = tempOutput)
   #featurePoly <- readOGR(dsn = tempOutput, layer = "OGRGeoJSON")
   
   
