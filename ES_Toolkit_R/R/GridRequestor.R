@@ -1,6 +1,6 @@
 #' Get climate data grids for specified parameter(s) and NPS unit(s)
 #'
-#' Takes one park code and a list of one or more climate parameters and requests climate data for the specified duration (daily, monthly, or yearly). Returns a grid or grids (by parameter) in ASCII format or an in-memory raster stack.
+#' Takes one park code and a list of one or more climate parameters and requests gridded climate data from ACIS Web Services (\url{http://www.rcc-acis.org/docs_webservices.html}) for the specified duration (daily, monthly, or yearly). Returns a grid or grids (by parameter) in ASCII format or an in-memory raster stack.
 #' @param unitCode (optional) One unit code as a string. If not specified, defaults to CONUS geographic extent.
 #' @param sdate sdate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The beginning of the desired date range.
 #' @param edate edate (required) Format as a string (yyyy-mm, yyyymm, yyyy). The end of the desired date range.
