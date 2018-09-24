@@ -274,6 +274,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
   # Initialize return object (table or dataFrame)
   df <- NULL
   dfResponse <- NULL
+  options(stringsAsFactors = FALSE)
   # Initialize vectors for SID type
   sid1_type = c()
   sid2_type = c()
@@ -559,7 +560,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
                 colnames(df)[15] <- rName
                 # For missing count by year data, missing vector returned as character to accommodate missing records ("NA")
                 #df[[fName]][k] <-
-                  #as.character(replace(missingArray, missingArray == " ", NA))
+                #as.character(replace(missingArray, missingArray == " ", NA))
               }
               itemCount <- itemCount + 1
             }
@@ -571,7 +572,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
               # For monthly data, value vector returned as character to accommodate missing records ("M")
               df[[vName]] <- as.numeric(valueArray)#valueArray#as.numeric(valueArray)
               df[[fName]] <-
-                as.character(replace(flagArray, flagArray == " ", NA))
+                as.numeric(as.character(replace(flagArray, flagArray == " ", NA)))
               itemCount <- itemCount + 1
             }
           }
@@ -610,6 +611,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
   else {
     dfResponse <- df
   }
+  options(stringsAsFactors = TRUE)
   return(dfResponse)
 }
 
@@ -856,11 +858,11 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
               as.character(dateList[x]),
               sep = "\\"
             ),
-        paste(
-            srcFilePrefix,
-            as.character(dateList[x]),
-            sep = "_"
-          ), sep = "\\")
+            paste(
+              srcFilePrefix,
+              as.character(dateList[x]),
+              sep = "_"
+            ), sep = "\\")
         
         # srcRasterPattern <-
         #   paste(srcFolder,
@@ -879,7 +881,7 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
           #outRasterPattern <- paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep=""), sep = "_")
         }
         outSourcePlotPrefix <- paste(unitCode, paste(metricPrefix, as.character(dateList[x]), sep="_"), sep = "_")
-
+        
         for (mth in 1:12) {
           #outSrcStackName <- paste("outSource", as.character(mth), sep = "_")
           #srcStackFileNames <- append(srcStackFileNames, paste("outSource", as.character(mth), sep = "_"))
@@ -1169,10 +1171,10 @@ getGridStatistics <- function(rasStack, metric=NULL, unitCode=NULL, filePath=NUL
     # Write out CSV file
     if (!is.null(filePath)) {
       if (!is.null(unitCode)) {
-      outFile <-
-        paste(filePath,
-            paste(paste(unitCode, fileNameRoot, sep = "_"), format(Sys.Date(), "%Y%m%d"), sep = "_"),
-            sep = "\\")
+        outFile <-
+          paste(filePath,
+                paste(paste(unitCode, fileNameRoot, sep = "_"), format(Sys.Date(), "%Y%m%d"), sep = "_"),
+                sep = "\\")
       }
       else {
         outFile <-
@@ -1301,7 +1303,8 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
     }
     toCount <- NULL
   }
-  dfResponse0 <- cbind(idArray, nArray, dArray, aArray, bArray, metricArray)
+  #options(stringsAsFactors = FALSE)
+  dfResponse0 <- cbind(idArray, nArray, dArray, as.numeric(factor(aArray)), as.numeric(factor(bArray)), metricArray)
   dfResponse <- as.data.frame(dfResponse0)
   colnames(dfResponse)[1] <- "uid"
   colnames(dfResponse)[2] <- "name"
@@ -1320,7 +1323,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
       qmethod = "double"
     )
   }
-  
+  #options(stringsAsFactors = TRUE)
   return(dfResponse)
 }
 
@@ -1836,10 +1839,10 @@ getStationMetrics <-
         metricSourceComboCleaned <- metricSourceCombo[metricSourceCombo$uid != "no data available",]
         metricData <-
           getRunCounts(rawCounts = metricSourceComboCleaned,
-                         runLength = 7,
-                         metric = metric)
+                       runLength = 7,
+                       metric = metric)
         outputMetricFile(metricData, metric,
-                           filePathAndRootname)
+                         filePathAndRootname)
         
       }
       else { # CST8and9 and CSP7and8
@@ -1856,15 +1859,15 @@ getStationMetrics <-
             metric = metric
           )
         })
-        metricData <- cleanNestedList(metricSource)
-        if (typeof(metricSource) == "list") {
+        metricData0 <- cleanNestedList(metricSource)
+        if (typeof(metricData0) == "list") {
           duration = "yly"
-          finalMetricData <-
-            getDepartureCounts(rawDepartures = metricData,
+          metricData <-
+            getDepartureCounts(rawDepartures = metricData0,
                                duration = duration,
                                metric = metric)
           
-          outputMetricFile(finalMetricData, metric,
+          outputMetricFile(metricData, metric,
                            filePathAndRootname)
         }
       }
@@ -1923,7 +1926,7 @@ cleanNestedList <- function(l) {
         else {
           df <- as.data.frame(x[, i])
         }
-    }
+      }
     }
   }
   

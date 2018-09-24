@@ -31,7 +31,7 @@ getGrids(unitCode = NULL, sdate = NULL, edate = NULL, distance = NULL,
 ASCII-formatted grid file for each parameter for each date or an in-memory raster stack with a layer for each parameter for each date
 }
 \description{
-Takes one park code and a list of one or more climate parameters and requests climate data for the specified duration (daily, monthly, or yearly). Returns a grid or grids (by parameter) in ASCII format or an in-memory raster stack.
+Takes one park code and a list of one or more climate parameters and requests gridded climate data from ACIS Web Services (\url{http://www.rcc-acis.org/docs_webservices.html}) for the specified duration (daily, monthly, or yearly). Returns a grid or grids (by parameter) in ASCII format or an in-memory raster stack.
 }
 \examples{
 \dontrun{
