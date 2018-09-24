@@ -1756,12 +1756,12 @@ getStationMetrics <-
       }
       else if (metric == "CST5" ||
                metric == "CST6" || metric == "CST7") {
-        rCode <- "cnt_ge_0"
+        rCode <- "cnt_gt_0"
         cParam <- list("gdd32")
-        if (metric == "CST5") {
+        if (metric == "CST6") {
           cParam <- list("hdd")
         }
-        else if (metric == "CST6") {
+        else if (metric == "CST7") {
           cParam <- list("cdd")
         }
       }
@@ -1842,7 +1842,7 @@ getStationMetrics <-
                            filePathAndRootname)
         
       }
-      else {
+      else { # CST8and9 and CSP7and8
         metricSource <- sapply(climateStations, function(x) {
           getWxObservations(
             climateStations = x,
@@ -1858,6 +1858,7 @@ getStationMetrics <-
         })
         metricData <- cleanNestedList(metricSource)
         if (typeof(metricSource) == "list") {
+          duration = "yly"
           finalMetricData <-
             getDepartureCounts(rawDepartures = metricData,
                                duration = duration,
