@@ -33,6 +33,9 @@ The Environmental Setting Toolkit is the next iteration of and was forked from t
 		
 	Version 2.1.1 - June 2018
 	  Performance enhancements for gridded metric generation
+	  
+	Version 2.1.2 - September 2018
+	  Bug fixes 
 
 	Version 2.2 - June 2018
 	  Mirror capabilities for Python version of Toolkit
@@ -41,7 +44,11 @@ The Environmental Setting Toolkit is the next iteration of and was forked from t
 		
 	Version 2.3 - August 2018
 		Generic capabilities: add DayMet/NASA NEX as sources 
-  
+
+#### Release 2.1.2 - 20180924 #### 
+[Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.2)
+Bug fixes for getStationMetrics() function.  For protocol metric examples, see the two RMarkdown-produced PDFs: ES_StationMetricExamples.pdf and ES_GriddedMetricExamples.pdf.
+
 
 #### Release 2.1 - 20180531 ####
 [Release notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases)
