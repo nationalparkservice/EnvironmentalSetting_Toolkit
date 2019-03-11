@@ -15,4 +15,3 @@ getAOAFeature(unitCode, aoaExtent = "km30")
 Function retrieves a GeoJSON-formatted area of analysis (AOA) polygon in the 
 NAD83 geographic coordinate reference system (CRS).
 }
-

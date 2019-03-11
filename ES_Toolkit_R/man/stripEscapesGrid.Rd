@@ -12,4 +12,3 @@ stripEscapesGrid(inputStr)
 \description{
 stripEscapesGrid strips escape characters from input string (used to format getDailyGrids response)
 }
-

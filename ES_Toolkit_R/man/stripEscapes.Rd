@@ -12,4 +12,3 @@ stripEscapes(inputStr)
 \description{
 stripEscapes strips escape characters from input string
 }
-

@@ -25,4 +25,3 @@ formatWxObservations(rList, duration, climateParameters, reduceCodes,
 \description{
 formatWxObservations converts get*WxObservation response to a data frame, iterating by date and value
 }
-

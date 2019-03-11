@@ -4,7 +4,8 @@
 \alias{getRunCounts}
 \title{getRunCounts}
 \usage{
-getRunCounts(rawCounts, runLength, metric = NULL, filePathAndName = NULL)
+getRunCounts(rawCounts, runLength, metric = NULL,
+  filePathAndName = NULL)
 }
 \arguments{
 \item{rawCounts}{run counts for a climate parameter (use getWxObservations() with a reduce code of 'run*' to generate)}
@@ -21,4 +22,3 @@ A data frame of stations, dates, and their run counts greater than or equal to t
 \description{
 Summarizes raw run response into a data frame with year and count of runs >= specified # of days
 }
-

@@ -19,4 +19,3 @@ getGridStatistics(rasStack, metric = NULL, unitCode = NULL,
 \description{
 Generates a CSV file containing raster statistics from a raster stack.
 }
-

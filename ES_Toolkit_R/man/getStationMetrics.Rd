@@ -26,4 +26,3 @@ CSV files by metric
 \description{
 Requests Environmental Setting protocol metrics for a set of stations
 }
-

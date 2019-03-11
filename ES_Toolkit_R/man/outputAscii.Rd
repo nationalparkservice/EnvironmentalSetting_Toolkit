@@ -20,4 +20,3 @@ outputAscii(gridResponse, fullFilePath, lonCen, latCen, luSource)
 \description{
 outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
 }
-

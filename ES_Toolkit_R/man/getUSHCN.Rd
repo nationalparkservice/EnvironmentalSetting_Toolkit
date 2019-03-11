@@ -12,4 +12,3 @@ getUSHCN(responseList)
 \description{
 Retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
 }
-

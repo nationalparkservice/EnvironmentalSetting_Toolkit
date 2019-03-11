@@ -4,9 +4,9 @@
 \alias{getGrids}
 \title{Get climate data grids for specified parameter(s) and NPS unit(s)}
 \usage{
-getGrids(unitCode = NULL, sdate = NULL, edate = NULL, distance = NULL,
-  climateParameters = NULL, duration = "dly", gridDescription = "PRISM",
-  filePath = NULL, customBBox = NULL)
+getGrids(unitCode = NULL, sdate = NULL, edate = NULL,
+  distance = NULL, climateParameters = NULL, duration = "dly",
+  gridDescription = "PRISM", filePath = NULL, customBBox = NULL)
 }
 \arguments{
 \item{unitCode}{(optional) One unit code as a string. If not specified, defaults to CONUS geographic extent.}
@@ -57,4 +57,3 @@ Get yearly PRISM grids for three years for all parameters
 getGrids(unitCode = list("SHEN"), sdate = "2013", edate = "2016", duration = "yly")
 }
 }
-

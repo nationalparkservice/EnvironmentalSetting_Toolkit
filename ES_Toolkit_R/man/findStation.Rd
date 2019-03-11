@@ -51,4 +51,3 @@ findStation(unitCode = "ROMO", distance=30, climateParameters=list('pcpn'), file
 Find stations within 50km of Alamosa NWR that collect precipitation data 
 }
 }
-

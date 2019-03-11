@@ -37,4 +37,3 @@ formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
 \description{
 Requests are made via GET (findStation) or POST (getWxObservations, getGrids)
 }
-

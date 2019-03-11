@@ -4,8 +4,8 @@
 \alias{getMetricGrids}
 \title{getMetricGrids}
 \usage{
-getMetricGrids(featurePolygon, metric, unitCode, sdate = NULL, edate = NULL,
-  outputNormals = FALSE, filePath = NULL)
+getMetricGrids(featurePolygon, metric, unitCode, sdate = NULL,
+  edate = NULL, outputNormals = FALSE, filePath = NULL)
 }
 \arguments{
 \item{featurePolygon}{SpatialPolygon object; for area of analysis, use getAOAFeature()}
@@ -39,4 +39,3 @@ Requires rgdal library and NPS intranet connection.
 For the AOA, returns a raster stack containing metric layers (cropped, masked) and writes out a CSV file of metric raster statistics and PNG-formatted plots for metric, 
 cropped PRISM 800m source and, optionally, cropped 30 year normal rasters.
 }
-

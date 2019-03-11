@@ -14,4 +14,3 @@ getStationSubtype(testType, testSid)
 \description{
 getStationType function uses the station identifier type code to lookup the station type description
 }
-

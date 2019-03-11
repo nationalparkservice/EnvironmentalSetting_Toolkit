@@ -22,4 +22,3 @@ A data frame of stations, dates, and their departure counts above or below the 3
 \description{
 Function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
 }
-

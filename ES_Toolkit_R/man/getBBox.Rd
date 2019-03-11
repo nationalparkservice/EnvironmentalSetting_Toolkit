@@ -14,4 +14,3 @@ getBBox(unitCode, expandBBox, bboxCustom = NULL)
 \description{
 getBBox retrieves bounding box from IRMA Unit service and buffers it by specified distance
 }
-

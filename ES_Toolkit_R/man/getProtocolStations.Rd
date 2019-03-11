@@ -19,4 +19,3 @@ A list of station UIDs
 \description{
 NPS Only: Function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
 }
-
