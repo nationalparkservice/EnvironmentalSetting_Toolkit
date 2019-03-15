@@ -4,7 +4,7 @@ Version: 2.1.2
 Author: Lisa Nelson <lisa_l_nelson@nps.gov>
 Maintainer: Lisa Nelson <lisa_l_nelson@nps.gov>
 Description: Utility package for finding climate stations, downloading climate parameter data, and generating protocol metrics for a station or stations.
-Imports: jsonlite, httr, raster, rgdal
+Depends: jsonlite, httr, raster, rgdal
 License: MIT License (MIT) Copyright (c) 2018 
 LazyData: true
 RoxygenNote: 6.1.1
