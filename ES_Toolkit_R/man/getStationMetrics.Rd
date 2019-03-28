@@ -17,8 +17,6 @@ getStationMetrics(climateStations, sdate = "por", edate = "por",
 \item{filePathAndRootname}{File path and root name for output CSV files. Do not include extension.}
 
 \item{metric}{(optional) Default is all station metrics for temperature and precipitation. If used, returns values for specified metric.}
-
-\item{climateParameters}{A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}}
 }
 \value{
 CSV files by metric

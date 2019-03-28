@@ -8,6 +8,9 @@
 #' Station location must intersect the bounding box (either unbuffered or buffered).
 #' Returns station information as a data frame with the following items: name, longitude, latitude, station IDs (sids), state code, elevation (feet), and unique station ID
 # @param sourceURL sourceURL for ACIS data services
+#' @import jsonlite httr
+#' @importFrom stats setNames
+#' @importFrom utils write.table
 #' @param unitCode One NPS unit code as a string
 #' @param distance (optional) Distance (in kilometers) to buffer park bounding box
 #' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd, gdd, hdd, cdd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}

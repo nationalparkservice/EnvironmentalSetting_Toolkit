@@ -9,7 +9,9 @@ getBBox(unitCode, expandBBox, bboxCustom = NULL)
 \arguments{
 \item{unitCode}{unitCode One NPS or FWS unit code as a string}
 
-\item{bboxExpand}{buffer distance in decimal degrees (assumes WGS84)}
+\item{expandBBox}{buffer distance in decimal degrees (assumes WGS84)}
+
+\item{bboxCustom}{custom bounding box in format: "xmin, ymin, xmax, ymax". Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001"}
 }
 \description{
 getBBox retrieves bounding box from IRMA Unit service and buffers it by specified distance

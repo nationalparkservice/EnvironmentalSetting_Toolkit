@@ -1,6 +1,8 @@
 #' Utility functions for EnvironmentalSetting_Toolkit
 #'
+#' 
 #' getStationType function uses the station identifier type code to lookup the station type description
+#' @import jsonlite 
 #' @param testType station identifier type code
 #' @param testSid first three characters of the station identifier
 #' @export
@@ -39,7 +41,7 @@ getStationSubtype <- function(testType, testSid) {
 #' 
 #' Requests are made via GET (findStation) or POST (getWxObservations, getGrids)
 #' 
-#' 
+#' @import jsonlite 
 #' @param requestType type of request: getDailyWxObservations, getMonthlyWxObservations, getGrids, (findStation)
 #' @param climateParameters A list of one or more climate parameters defined in calling source
 #' @param sdate sdate (required) Start data defined in calling source
@@ -261,7 +263,9 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
 }
 
 #' formatWxObservations converts get*WxObservation response to a data frame, iterating by date and value
-#' @param responseContent list of response arrays containing name/value pairs: meta (default), data (date, values) 
+#' @import jsonlite httr 
+#' @importFrom stats setNames
+#' @param rList list of response arrays containing name/value pairs: meta (default), data (date, values) 
 #' @param duration station data duration specified in calling source 
 #' @param climateParameters A list of one or more climate parameters defined in calling source
 #' @param reduceCodes A list of one or more reduce codes defined in calling source
@@ -618,8 +622,6 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
 #' stripEscapes strips escape characters from input string
 #' @param inputStr input from which escape characters are to be stripped
 #' @export
-#'
-
 stripEscapes <- function(inputStr) {
   # Yes, this is crappy code but it works
   # TODO: Clean this up!!!
@@ -636,8 +638,6 @@ stripEscapes <- function(inputStr) {
 #' stripEscapesGrid strips escape characters from input string (used to format getDailyGrids response)
 #' @param inputStr input from which escape characters are to be stripped
 #' @export
-#'
-
 stripEscapesGrid <- function(inputStr) {
   # Yes, this is crappy code but it works
   # TODO: Clean this up!!!
@@ -650,9 +650,10 @@ stripEscapesGrid <- function(inputStr) {
 }
 
 #' getBBox retrieves bounding box from IRMA Unit service and buffers it by specified distance
-#' 
+#' @import httr
 #' @param unitCode unitCode One NPS or FWS unit code as a string
-#' @param bboxExpand buffer distance in decimal degrees (assumes WGS84)
+#' @param expandBBox buffer distance in decimal degrees (assumes WGS84)
+#' @param bboxCustom custom bounding box in format: "xmin, ymin, xmax, ymax". Example: "-114.291153779, 35.5612153111, -111.252315168, 37.0351548001" 
 #' @export
 #'
 getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
@@ -706,7 +707,8 @@ getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
 #' getUSHCN 
 #' 
 #' Retrieves the list of USHCN (U.S. Historical Climatology Network) station identifiers and compares that to the set of stations requested. Matches are returned as a vector with flag values (N = not HCN, Y = HCN).
-#' 
+#' @importFrom utils read.fwf
+#' @importFrom stats setNames
 #' @param responseList list of response array of requested station codes (sid)
 #' @export getUSHCN
 #'
@@ -745,6 +747,7 @@ getUSHCN <- function (responseList) {
 #' 
 #' Function retrieves a GeoJSON-formatted area of analysis (AOA) polygon in the 
 #' NAD83 geographic coordinate reference system (CRS). 
+#' @importFrom utils download.file
 #' @param unitCode unitCode One NPS unit code as a string
 #' @param aoaExtent aoaExtent one of park, km3 or km30 as a string. Default is "km30"
 #' @export
@@ -786,7 +789,8 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 #' 
 #' For the AOA, returns a raster stack containing metric layers (cropped, masked) and writes out a CSV file of metric raster statistics and PNG-formatted plots for metric, 
 #' cropped PRISM 800m source and, optionally, cropped 30 year normal rasters.
-#' 
+#' @import jsonlite httr rgdal sp RODBC
+#' @importFrom grDevices png dev.off
 #' @param featurePolygon SpatialPolygon object; for area of analysis, use getAOAFeature()
 #' @param metric (required) One climate metric from the IMD Environmental Setting protocol
 #' @param unitCode (required) unitCode One NPS unit code as a string
@@ -1071,6 +1075,8 @@ getMetricGrids <- function(featurePolygon, metric, unitCode, sdate=NULL, edate=N
 #' getGridStatistics
 #' 
 #' Generates a CSV file containing raster statistics from a raster stack.
+#' @importFrom stats sd var
+#' @importFrom utils write.csv
 #' @param rasStack (required) RasterStack object
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
 #' @param unitCode (optional) One unit code as a string
@@ -1204,6 +1210,7 @@ getGridStatistics <- function(rasStack, metric=NULL, unitCode=NULL, filePath=NUL
 #' getProtocolStations 
 #' 
 #' NPS Only: Function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
+#' @import RODBC
 #' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
 #' @param dbName database name
 #' @param dbTable table name containing monitoring locations
@@ -1212,7 +1219,7 @@ getGridStatistics <- function(rasStack, metric=NULL, unitCode=NULL, filePath=NUL
 #'
 getProtocolStations <- function(dbInstance, dbName, dbTable) {
   # Open database connection
-  library(RODBC)
+  #library(RODBC)
   connString <- paste0("driver={SQL Server};server=",dbInstance,";database=",dbName,";uid=Report_Data_Reader;pwd=ReportDataUser")
   dbConn <- odbcDriverConnect(connString)
   
@@ -1229,6 +1236,7 @@ getProtocolStations <- function(dbInstance, dbName, dbTable) {
 #' getDepartureCounts 
 #' 
 #' Function calculates day counts by year or month for the station-based above and below normal metrics (CST8 and 9; CSP7 and 8) of the IMD Environmental Setting Protocol
+#' @importFrom utils write.table
 #' @param rawDepartures Daily departures for a climate parameter (use getWxObservations() with normal="departure" to generate)
 #' @param duration Duration of summarization period. Default is yearly ("yly"). Use "mly" for monthly.
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
@@ -1330,6 +1338,7 @@ getDepartureCounts <- function(rawDepartures, duration="yly", metric=NULL, fileP
 #' getRunCounts 
 #' 
 #' Summarizes raw run response into a data frame with year and count of runs >= specified # of days
+#' @importFrom utils write.table
 #' @param rawCounts run counts for a climate parameter (use getWxObservations() with a reduce code of 'run*' to generate)
 #' @param runLength number of run days used to filter raw run counts
 #' @param metric (optional) One climate metric from the IMD Environmental Setting protocol
@@ -1423,7 +1432,7 @@ getRunCounts <-
 #' 
 #' Requests Environmental Setting protocol metrics for a set of stations
 #' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
-#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
+# @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd).  If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
 #' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
 #' @param filePathAndRootname File path and root name for output CSV files. Do not include extension.
@@ -1877,7 +1886,7 @@ getStationMetrics <-
   }
 
 #' cleanNestedList extracts sublists from station metric responses
-#' @param metricResponse
+#' @param l response (list) from getWxObservations() request
 #' @export
 #'
 cleanNestedList <- function(l) {
@@ -1945,6 +1954,7 @@ cleanNestedList <- function(l) {
 }
 
 #' outputMetricFile writes metric data frames to a CSV file
+#' @importFrom utils write.table
 #' @param metricData Data frame to output
 #' @param metricName Metric name
 #' @param filePathAndRootName Output path and folder
@@ -1962,10 +1972,11 @@ outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
 }
 
 #' outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
+#' @importFrom utils write.table
 #' @param gridResponse grid (dataframe format) returned from ACIS request (by date)
-#' @param filePath full file path for ASCII output
+#' @param fullFilePath full file path for ASCII output
 #' @param lonCen longitude of lower left grid cell
-#' @param lonCen latitude of lower left grid cell
+#' @param latCen latitude of lower left grid cell
 #' @param luSource ACIS lookup source (as dataframe)
 #' @export
 #'

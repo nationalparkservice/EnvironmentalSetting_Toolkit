@@ -5,6 +5,8 @@
 #' 
 #' Takes a list of one or more parameters and one or more unique station IDs, requests station data, and returns it as a data frame. Note: For monthly data, value vectors returned as character format to accommodate missing records ("M")
 # @param dataURL URL for ACIS data service vending station data
+#' @import jsonlite httr 
+#' @importFrom utils write.table
 #' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
 #' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, obst, snow, snwd, gdd, hdd, cdd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
 #' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.

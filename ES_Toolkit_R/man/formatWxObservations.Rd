@@ -8,6 +8,8 @@ formatWxObservations(rList, duration, climateParameters, reduceCodes,
   luElements, normal, metric)
 }
 \arguments{
+\item{rList}{list of response arrays containing name/value pairs: meta (default), data (date, values)}
+
 \item{duration}{station data duration specified in calling source}
 
 \item{climateParameters}{A list of one or more climate parameters defined in calling source}
@@ -19,8 +21,6 @@ formatWxObservations(rList, duration, climateParameters, reduceCodes,
 \item{normal}{(optional) 1 = 30-year climate normal or "departure" for departure from 30-year climate normal. Normal period: 1981-2010.}
 
 \item{metric}{(optional) Metric code for IMD Environmental}
-
-\item{responseContent}{list of response arrays containing name/value pairs: meta (default), data (date, values)}
 }
 \description{
 formatWxObservations converts get*WxObservation response to a data frame, iterating by date and value

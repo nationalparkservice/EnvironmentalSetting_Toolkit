@@ -9,13 +9,13 @@ outputAscii(gridResponse, fullFilePath, lonCen, latCen, luSource)
 \arguments{
 \item{gridResponse}{grid (dataframe format) returned from ACIS request (by date)}
 
+\item{fullFilePath}{full file path for ASCII output}
+
 \item{lonCen}{longitude of lower left grid cell}
 
+\item{latCen}{latitude of lower left grid cell}
+
 \item{luSource}{ACIS lookup source (as dataframe)}
-
-\item{filePath}{full file path for ASCII output}
-
-\item{lonCen}{latitude of lower left grid cell}
 }
 \description{
 outputAscii formats grid(s) as ASCII (*.asc) with headers and projection (*.prj)
