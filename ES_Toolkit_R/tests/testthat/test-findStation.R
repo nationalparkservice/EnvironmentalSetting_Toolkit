@@ -16,7 +16,7 @@ test_that("Tests for findStation()",
               distance = 30,
               climateParameters = list('maxt')
             ),
-            17)
+            19)
             # Testing request for degree day parameters
             expect_type(findStation(
               unitCode = "FOBU",
@@ -27,7 +27,7 @@ test_that("Tests for findStation()",
               unitCode = "FOBU",
               climateParameters = list('gdd', 'hdd', 'cdd')
             ),
-            17)
+            19)
             # Testing custom bounding box as used with the getStationMetrics() function
             expect_type(findStation(
               unitCode = "CHIR",
@@ -35,24 +35,11 @@ test_that("Tests for findStation()",
               customBBox = "-109.75807963885875, 31.663585919768266, -108.9370618183587, 32.35854176354032"
             ),
             "list")
-            expect_type(findStation(
-              unitCode = "CHIR",
-              distance = 1,
-              customBBox = "-109.75807963885875, 31.663585919768266, -108.9370618183587, 32.35854176354032",
-              climateParameters = list('gdd', 'hdd', 'cdd')
-            ),
-            "list")
-            expect_length(findStation(
-              unitCode = "CHIR",
-              distance = 1,
-              customBBox = "-109.75807963885875, 31.663585919768266, -108.9370618183587, 32.35854176354032"
-            ),
-            17)
             expect_length(findStation(
               unitCode = "CHIR",
               distance = 1,
               customBBox = "-109.75807963885875, 31.663585919768266, -108.9370618183587, 32.35854176354032",
               climateParameters = list('gdd', 'hdd', 'cdd')
             ),
-            17)
+            19)
           })
