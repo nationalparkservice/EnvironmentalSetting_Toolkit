@@ -79,4 +79,6 @@ test_that("Tests for getStationMetrics()",
               )),
               5
             )
+            
+            # Tests for getRunDetails; generated automatically via call to getStationMetrics
           })

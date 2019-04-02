@@ -1454,11 +1454,9 @@ getRunDetails <-
     
     # Get date vector from rawCounts
     dates <- as.Date(rawCounts$date, "%Y")
-    #countDuration <- rawCounts$date
     countDuration <- unique(format(dates, "%Y"))
     yearCount <- length(countDuration)
     stationCount <- length(unique(rawCounts$uid))
-    rowCount <- yearCount * stationCount
     
     idArray <- vector(mode = "integer")
     nArray <- vector(mode = "character")
@@ -1466,54 +1464,56 @@ getRunDetails <-
     rArray <- vector(mode = "integer")
     rdArray <- vector(mode = "character")
     metricArray <- vector(mode = "character")
-    #metricArray <- rep(metric, rowCount)
     k <- 1
     
     for (i in 1:length(unique(rawCounts$uid))) {
       # Get data for each station for year
       #print(unique(toCount$uid)[j])
-      byStation <- subset(rawCounts, uid == unique(rawCounts$uid)[i])
+      byStation <-
+        subset(rawCounts, uid == unique(rawCounts$uid)[i])
       #byStation0 <- subset(rawCounts, uid == unique(rawCounts$uid)[i])
       #byStation <- byStation0[with(byStation0, order(date)), ]
       for (j in 1:length(byStation$uid)) {
-      # Count total greater than or equal to runLength
-      #length(csp3check$pcpn_in_run[14][[1]][,1][as.numeric(csp3check$pcpn_in_run[14][[1]][,1]) >= 7])
-      # Missing/NA element
-      if (is.null(byStation$pcpn_in_run) || is.null(byStation$pcpn_in_run[j][[1]][,1])) {
-        runDetails <- NA
-      }
-      else if (is.na(byStation$pcpn_in_run) || is.na(byStation$pcpn_in_run[j][[1]][,1])) {
-        runDetails <- NA
-      }  
-      # Run element(s) exist
-      else if (length(byStation$pcpn_in_run[j][[1]][, 1]) > 1) {
-        #rD <- subset(byStation, as.numeric(byStation$pcpn_in_run[1][[1]][, 1]) >= runLength])
-        runDays <-
-          byStation$pcpn_in_run[j][[1]][, 1][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
-        runEndDates <- 
-          byStation$pcpn_in_run[j][[1]][, 2][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
-        #runCounts <-
-        #  as.numeric(byStation$pcpn_in_run[1][[1]][, 1][as.numeric(byStation$pcpn_in_run[1][[1]][, 1]) >= runLength])
-        #runDates <- 
-         # byStation$pcpn_in_run[1][[1]][, 1][as.numeric(byStation$pcpn_in_run[1][[1]][, 2]) >= runLength]
-       # byStationRuns <- cbind(rep(byStation$uid[1], length(runCounts)), rep(byStation$name[1], length(runCounts)), rep(byStation$date[1], length(runCounts)), runCounts, runDates, rep(metric, length(runCounts)))
-        for (k in 1:length(runDays)) {
-          idArray[k] <- byStation$uid[j] 
-          nArray[k] <- byStation$name[j]
-          dArray[k] <- byStation$date[j] 
-          rArray[k] <- runDays[k]
-          rdArray[k] <- runEndDates[k]
-          metricArray[k] <- metric
+        # Count total greater than or equal to runLength
+        
+        # Missing/NA element
+        if (is.null(byStation$pcpn_in_run) ||
+            is.null(byStation$pcpn_in_run[j][[1]][, 1])) {
+          runDetails <- NA
         }
-        dfResponse0 <- cbind(idArray, nArray, dArray, as.numeric(rArray), rdArray, metricArray)
-      }
-      df <- rbind(df, dfResponse0)
+        else if (is.na(byStation$pcpn_in_run) ||
+                 is.na(byStation$pcpn_in_run[j][[1]][, 1])) {
+          runDetails <- NA
+        }
+        # Run element(s) exist
+        else if (length(byStation$pcpn_in_run[j][[1]][, 1]) > 1) {
+          runDays <-
+            byStation$pcpn_in_run[j][[1]][, 1][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
+          runEndDates <-
+            byStation$pcpn_in_run[j][[1]][, 2][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
+          for (k in 1:length(runDays)) {
+            idArray[k] <- byStation$uid[j]
+            nArray[k] <- byStation$name[j]
+            dArray[k] <- byStation$date[j]
+            rArray[k] <- runDays[k]
+            rdArray[k] <- runEndDates[k]
+            metricArray[k] <- metric
+          }
+          dfResponse0 <-
+            cbind(idArray,
+                  nArray,
+                  dArray,
+                  as.numeric(rArray),
+                  rdArray,
+                  metricArray)
+        }
+        df <- rbind(df, dfResponse0)
       }
     }
-
+    
     dfResponse <- as.data.frame(df) #df[order(df[, 1], df[, 3]), ]
-    cntName <- paste("pcpn_in_run_le_0.01",runLength, sep = "_")
-    cntDateName <- paste("pcpn_in_runEndDate",runLength, sep = "_")
+    cntName <- paste("pcpn_in_run_le_0.01", runLength, sep = "_ge")
+    cntDateName <- paste("pcpn_in_runEndDate", runLength, sep = "_ge")
     colnames(dfResponse)[1] <- "uid"
     colnames(dfResponse)[2] <- "name"
     colnames(dfResponse)[3] <- "date"
@@ -1775,6 +1775,12 @@ getStationMetrics <-
                        metric = "CSP3")
         outputMetricFile(CSP3Data, "CSP3",
                          filePathAndRootname)
+        runDetails <-
+          getRunDetails(rawCounts = CSP3Source,
+                        runLength = 7,
+                        metric = "CSP3")
+        outputDetailFile(runDetails, "CSP3",
+                         filePathAndRootname)
       }
       
       # Get CSP4: Measurable snow days
@@ -1959,7 +1965,12 @@ getStationMetrics <-
                        metric = metric)
         outputMetricFile(metricData, metric,
                          filePathAndRootname)
-        
+        runDetails <-
+          getRunDetails(rawCounts = metricSourceComboCleaned,
+                       runLength = 7,
+                       metric = metric)
+        outputDetailFile(runDetails, metric,
+                         filePathAndRootname)
       }
       else { # CST8and9 and CSP7and8
         metricSource <- sapply(climateStations, function(x) {
@@ -2069,6 +2080,24 @@ cleanNestedList <- function(l) {
 #' 
 outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
   outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_METRIC.csv"), sep = "")
+  write.table(
+    metricData,
+    file = outFile,
+    sep = ",",
+    row.names = FALSE,
+    qmethod = "double"
+  )
+}
+
+#' outputDetailFile writes detail (run details, departure details) data frames to a CSV file
+#' @importFrom utils write.table
+#' @param metricData Data frame to output
+#' @param metricName Metric name
+#' @param filePathAndRootName Output path and folder
+#' @export
+#' 
+outputDetailFile <- function(metricData, metricName, filePathAndRootName) {
+  outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_DETAIL.csv"), sep = "")
   write.table(
     metricData,
     file = outFile,
