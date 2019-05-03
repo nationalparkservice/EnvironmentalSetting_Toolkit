@@ -205,3 +205,196 @@ getWxObservations <-
     }
     return (dfResponse)
   }
+
+
+
+#' Get daily data with flags for specified parameter(s) and station(s)
+#'
+#' Using one or more stations (comma-delimited IDs or a list of IDs), requests daily weather observation data with flags from NOAA Regional Climate Centers' Applied Climate Information System (ACIS) web services \url{http://www.rcc-acis.org/docs_webservices.html}. ACIS overview: \url{http://www.rcc-acis.org/index.html}  ACIS journal reference: \url{https://doi.org/10.1175/BAMS-D-13-00032.1}
+#' 
+#' 
+#' Takes a list of one or more parameters and one or more unique station IDs, requests daily station data for each climate parameter with flags, and returns it as a data frame. Note: Value vectors returned as character format to accommodate missing records ("M")
+# @param dataURL URL for ACIS data service vending station data
+#' @import jsonlite httr 
+#' @importFrom utils write.table
+#' @param climateStations A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.
+#' @param climateParameters A list of one or more climate parameters (e.g. pcpn, mint, maxt, avgt, snow, snwd, gdd, hdd, cdd). If not specified, defaults to all parameters except degree days. See Table 3 on ACIS Web Services page: \url{http://www.rcc-acis.org/docs_webservices.html}
+#' @param sdate (optional) Default is period of record ("por"). If specific start date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The beginning of the desired date range.
+#' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
+#' @param duration (optional) Duration of summarization period. Default is daily ("dly"). 
+#' @param interval (optional) Time step for results. Default is daily ("dly"). 
+#' @param filePathAndName (optional) File path and name including extension for output CSV file
+#' @return A data frame containing the requested data or that data frame written to a CSV file. Note: date vector is in character format, not date format. See User Guide for more details: \url{https://docs.google.com/document/d/1RKZ2ODNqmb0mYldFu1GivEdGwkDT9WwMEGe73vzmwQE}
+#' @examples \dontrun{
+#' Precipitation, temperature weather observations for one station for a specifc date range:
+#'
+#' getWxObservations(climateParameters=list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations=25056, sdate="20150801", edate="20150831")
+#'
+#' The same request written to a CSV file:
+#' 
+#' getWxObservations(climateParameters=list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations=25056, sdate="20150801", edate="20160831", filePathAndName = "D:\\temp\\trash\\dailyObs_station25056.csv")
+#'  
+#' All daily weather observations for a station for its period of record
+#'
+#' getWxObservations(climateStations=60903)
+#' 
+#' All monthly weather observations for two stations for a specified date range:
+#' 
+#' getWxObservations(climateStations = list(61193, 26215), sdate="201401", edate = "201501", duration="mly", maxMissing = NULL)
+#'
+#' Monthly weather observations for precipitation for a station from beginning of record through Sept 2016
+#' 
+#' getWxObservations(climateStations = list(26215), climateParameters = list('pcpn'), reduceCodes = list('min'), edate= "2016-09", duration="mly", maxMissing = 2)
+#'
+#' All daily weather observations for all stations (using a findStation response data frame: stationDF) for a specific date range:
+#'
+#' getWxObservations(climateParameters=list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations=stationDF, sdate="20150801", edate="20150803")
+#' }
+#' @export
+#' 
+getWxObservationsDailyFlags <-
+  function(climateStations,
+           climateParameters = NULL,
+           sdate = "por",
+           edate = "por",
+           duration = "dly",
+           interval = "dly",
+           filePathAndName = NULL) {
+    # URLs and request parameters:
+    # ACIS data services
+    baseURL <- "http://data.rcc-acis.org/"
+    webServiceSource <- "StnData"
+    # Parameter flags: i = reporting station id, f = ACIS flag, s = source flag, n = reporting network, v = var minor; only valid when requesting daily data
+    paramFlags <- c("i,t,f,s,n,v")
+    
+    metaElements <-
+      list('uid', 'll', 'name', 'elev', 'sids', 'state')
+    lookups <-
+      fromJSON(
+        system.file("ACISLookups.json", package = "EnvironmentalSettingToolkit"),
+        flatten = TRUE
+      ) # assumes placement in package inst subfolder
+    luElements  <- lookups$element
+    
+    climateParameters0 <- lookups$element$code
+    climateParameters <-
+      climateParameters0[climateParameters0 %in% "obst" == FALSE] # remove obst
+    #climateParameters <- list(''mint', 'maxt', 'avgt', pcpn', 'snow', 'snwd', 'gdd', 'cdd', 'hdd')
+    
+    # Initialize response object
+    dfResponse <- NULL
+    
+    # Format incoming arguments
+    dataURL <-  gsub(" ", "", paste(baseURL, webServiceSource))
+    climateElems <- paste(climateParameters, collapse = ",")
+    paramCount <- length(climateParameters)
+    
+    # Iterate for each station
+    if (is.data.frame(climateStations)) {
+      listStations = as.list(climateStations$uid)
+    }
+    else if (is.list(climateStations)) {
+      listStations = climateStations
+    }
+    else {
+      listStations = as.list(climateStations)
+    }
+    for (s in 1:length(listStations)) {
+      df <- NULL
+      cUid <- unlist(listStations[s])
+      lapply(climateParameters, function(x) {
+        body <-
+          formatRequest(
+            requestType = "getWxObservations",
+            climateParameters = x,
+            "POR",
+            edate,
+            cUid,
+            duration = duration,
+            interval = interval,
+            paramFlags = paramFlags
+          )
+        
+        # This returns the full response - need to use content() and parse
+        # content(dataResponseInit) results in a list lacking column names but containing data which needs to be
+        # converted to dataFrame with appropriate vectors
+        dataResponseInit <-
+          POST(
+            "http://data.rcc-acis.org/StnData",
+            accept_json(),
+            add_headers("Content-Type" = "application/json"),
+            body = body,
+            verbose()
+          )
+        
+        if (grepl("data", content(dataResponseInit, "text")) == FALSE) {
+          dfResponse <- content(dataResponseInit, "text")
+        }
+        else {
+          # Format climate data object
+          rList <- content(dataResponseInit)
+          dataResponseError <- rList$error
+          if (is.null(dataResponseError)) {
+            df <-
+              formatWxObservationsDailyFlags(
+                rList,
+                duration = duration,
+                climateParameters = x,
+                luElements = luElements
+              )
+            # Create output object
+            if (is.data.frame(dfResponse)) {
+              dfResponse <- rbind(dfResponse, df)
+            }
+            else {
+              dfResponse <- df
+            }
+          }
+          else {
+            dfResponse <- dataResponseError
+          }
+        }
+        # Output file
+        if (!is.null(filePathAndName)) {
+          fName <-
+            gsub("<eyear>",
+                 format(as.Date(edate, format = "%Y-%m-%d"), "%Y"),
+                 gsub(
+                   "<StationUID>",
+                   cUid,
+                   gsub(
+                     "<runDate>",
+                     format(Sys.Date(), "%Y%m%d"),
+                     filePathAndName
+                   )
+                 ))
+          if (!file.exists(fName)) {
+            write.table(
+              dfResponse,
+              file = fName,
+              append = TRUE,
+              sep = ",",
+              row.names = FALSE,
+              qmethod = "double"
+            )
+          }
+          else {
+            write.table(
+              dfResponse,
+              file = fName,
+              append = TRUE,
+              sep = ",",
+              row.names = FALSE,
+              col.names = FALSE,
+              qmethod = "double"
+            )
+          }
+        }
+        else {
+          return (dfResponse)
+        }
+      }) # end lapply climateParameters
+    }
+    return (dfResponse)
+  }
+    
