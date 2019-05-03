@@ -228,27 +228,19 @@ getWxObservations <-
 #' @examples \dontrun{
 #' Precipitation, temperature weather observations for one station for a specifc date range:
 #'
-#' getWxObservations(climateParameters=list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations=25056, sdate="20150801", edate="20150831")
+#' getWxObservationsDailyFlags(climateParameters=list('pcpn', 'avgt', 'mint', 'maxt'), climateStations=25056, sdate="20150801", edate="20150831")
 #'
 #' The same request written to a CSV file:
 #' 
-#' getWxObservations(climateParameters=list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations=25056, sdate="20150801", edate="20160831", filePathAndName = "D:\\temp\\trash\\dailyObs_station25056.csv")
+#' getWxObservationsDailyFlags(climateParameters=list('pcpn', 'avgt', 'mint', 'maxt'), climateStations=25056, sdate="20150801", edate="20160831", filePathAndName = "D:\\temp\\trash\\dailyObs_station25056.csv")
 #'  
 #' All daily weather observations for a station for its period of record
 #'
-#' getWxObservations(climateStations=60903)
+#' getWxObservationsDailyFlags(climateStations=60903)
 #' 
-#' All monthly weather observations for two stations for a specified date range:
-#' 
-#' getWxObservations(climateStations = list(61193, 26215), sdate="201401", edate = "201501", duration="mly", maxMissing = NULL)
-#'
-#' Monthly weather observations for precipitation for a station from beginning of record through Sept 2016
-#' 
-#' getWxObservations(climateStations = list(26215), climateParameters = list('pcpn'), reduceCodes = list('min'), edate= "2016-09", duration="mly", maxMissing = 2)
-#'
 #' All daily weather observations for all stations (using a findStation response data frame: stationDF) for a specific date range:
 #'
-#' getWxObservations(climateParameters=list('pcpn', 'avgt', 'obst', 'mint', 'maxt'), climateStations=stationDF, sdate="20150801", edate="20150803")
+#' getWxObservationsDailyFlags(climateParameters=list('pcpn', 'avgt', 'mint', 'maxt'), climateStations=stationDF, sdate="20150801", edate="20150803")
 #' }
 #' @export
 #' 

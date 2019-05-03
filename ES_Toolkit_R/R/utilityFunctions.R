@@ -622,6 +622,7 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
 }
 
 #' formatWxObservationsDailyFlags converts get*WxObservationDailyFlags response to a data frame, iterating by date
+#' used for source archiving
 #' 
 #' @import jsonlite httr 
 #' @importFrom stats setNames
