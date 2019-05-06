@@ -85,7 +85,7 @@ formatRequest <- function(requestType, climateParameters, sdate, edate, cUid=NUL
     reduceCount <- length(reduceList)
   }
   if (length(grep("gdd", climateParameters)) > 0) {
-    gddBase <- 32
+    gddBase <- 50
   }
   # List of elements
   eList <- NULL
@@ -1904,11 +1904,11 @@ getStationMetrics <-
       outputMetricFile(CST4Data, "CST4",
                        filePathAndRootname)
       
-      # Get CST5: Growing degree days (base temperature >= 32) (annual count)
+      # Get CST5: Growing degree days (base temperature >= 50) (annual count)
       CST5 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
-          climateParameters = list("gdd32"),
+          climateParameters = list("gdd"),
           sdate = sdate,
           edate = edate,
           duration = "yly",
@@ -2140,7 +2140,7 @@ getStationMetrics <-
       else if (metric == "CST5" ||
                metric == "CST6" || metric == "CST7") {
         rCode <- "cnt_gt_0"
-        cParam <- list("gdd32")
+        cParam <- list("gdd")
         if (metric == "CST6") {
           cParam <- list("hdd")
         }
