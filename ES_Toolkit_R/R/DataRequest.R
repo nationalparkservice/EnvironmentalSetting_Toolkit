@@ -212,8 +212,8 @@ getWxObservations <-
 #'
 #' Using one or more stations (comma-delimited IDs or a list of IDs), requests daily weather observation data with flags from NOAA Regional Climate Centers' Applied Climate Information System (ACIS) web services \url{http://www.rcc-acis.org/docs_webservices.html}. ACIS overview: \url{http://www.rcc-acis.org/index.html}  ACIS journal reference: \url{https://doi.org/10.1175/BAMS-D-13-00032.1}
 #' 
-#' 
-#' Takes a list of one or more parameters and one or more unique station IDs, requests daily station data for each climate parameter with flags, and returns it as a data frame. Note: Value vectors returned as character format to accommodate missing records ("M")
+#' Takes a list of one or more parameters and one or more unique station IDs, requests daily station data for each climate parameter with flags, and returns it as a CSV file. 
+#' Note: Value vectors returned as character format to accommodate missing records ("M"). ACIS formatting is preserved. For null values, some source networks use NA, others use "M". Some flag values are empty strings. 
 # @param dataURL URL for ACIS data service vending station data
 #' @import jsonlite httr 
 #' @importFrom utils write.table
@@ -223,8 +223,8 @@ getWxObservations <-
 #' @param edate (optional) Default is period of record ("por"). If specific end date is desired, format as a string (yyyy-mm-dd or yyyymmdd). The end of the desired date range.
 #' @param duration (optional) Duration of summarization period. Default is daily ("dly"). 
 #' @param interval (optional) Time step for results. Default is daily ("dly"). 
-#' @param filePathAndName (optional) File path and name including extension for output CSV file
-#' @return A data frame containing the requested data or that data frame written to a CSV file. Note: date vector is in character format, not date format. See User Guide for more details: \url{https://docs.google.com/document/d/1RKZ2ODNqmb0mYldFu1GivEdGwkDT9WwMEGe73vzmwQE}
+#' @param filePathAndName File path and name including extension for output CSV file
+#' @return A data frame written to a CSV file. Note: date vector is in character format, not date format. See User Guide for more details: \url{https://docs.google.com/document/d/1RKZ2ODNqmb0mYldFu1GivEdGwkDT9WwMEGe73vzmwQE}
 #' @examples \dontrun{
 #' Precipitation, temperature weather observations for one station for a specifc date range:
 #'
@@ -348,18 +348,19 @@ getWxObservationsDailyFlags <-
         }
         # Output file
         if (!is.null(filePathAndName)) {
-          fName <-
-            gsub("<eyear>",
-                 format(as.Date(edate, format = "%Y-%m-%d"), "%Y"),
-                 gsub(
-                   "<StationUID>",
-                   cUid,
+          if (grepl(filePathAndName, "<eyear>")) {
+            fName <-
+              gsub("<eyear>",
+                   format(as.Date(edate, format = "%Y-%m-%d"), "%Y"),
                    gsub(
-                     "<runDate>",
-                     format(Sys.Date(), "%Y%m%d"),
-                     filePathAndName
-                   )
-                 ))
+                     "<StationUID>",
+                     cUid,
+                     gsub("<runDate>",
+                          format(Sys.Date(), "%Y%m%d"),
+                          filePathAndName)
+                   ))
+          }
+          else fName <- filePathAndName
           if (!file.exists(fName)) {
             write.table(
               dfResponse,
@@ -383,10 +384,10 @@ getWxObservationsDailyFlags <-
           }
         }
         else {
-          return (dfResponse)
+          return ("ERROR: Please supply a file path and name for the output CSV file.")
         }
       }) # end lapply climateParameters
     }
-    return (dfResponse)
+    return ("INFO: Function getWxObservationsDailyFlags() finished.")
   }
     
