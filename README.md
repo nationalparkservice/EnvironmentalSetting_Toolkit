@@ -1,9 +1,9 @@
 # EnvironmentalSetting_Toolkit
-Tools supporting the NPS IMD Environmental Setting protocol. 
+Tools supporting the NPS IMD Environmental Setting protocol (https://irma.nps.gov/DataStore/Reference/Profile/2244060)
 
 The Environmental setting Toolkit is the next iteration of and was forked from the IM_Climate toolkit created in 2016-2017. That toolkit can be found here: (https://github.com/IMDProjects/IM_Climate)
 
-#### Draft Development Timeline
+#### Development Timeline
 
 	Version 2.0 - March 2018
 		Bug fixes
@@ -18,15 +18,31 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 	
 	Version 2.1.1 - June 2018
 	  Performance enhancements for gridded metric generation
+	  
+	Version 2.1.2 - September 2018
+	  Bug fixes
 
-	Version 2.2 - June 2018
+	Version 2.1.3 - May 2019
+	  Enhancements for FY2019 station metric generation
+	  
+	Version 2.1.4 - July 2019
+	  Enhancements for FY2019 gridded metric generation
+
+	Version 2.2 - October 2019
 	  Mirror capabilities for Python version of Toolkit
 		Index-based metrics
 		Upload polygon
 		
-	Version 2.3 - August 2018
-		Generic capabilities: add DayMet/NASA NEX as sources 
-  
+	Version 2.3 - November 2019
+		Generic capabilities: add DayMet/NASA NEX as sources
+
+
+#### Release 2.1.3 - 20190508 #### 
+[Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.3)
+Enhancements to run count and departure metrics.  Addition of daily flag data requests. Updates to station response. Implemented testing framework.
+
+#### Release 2.1.2 - 20180924 #### 
+[Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.2)
 
 #### Release 2.1 - 20180531 ####
 [Release notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases)

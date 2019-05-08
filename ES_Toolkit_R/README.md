@@ -1,4 +1,4 @@
-Tools supporting the NPS IMD Environmental Setting protocol.   
+Tools supporting the NPS IMD Environmental Setting protocol (https://irma.nps.gov/DataStore/Reference/Profile/2244060).   
 
 #### Overview ####
 
@@ -12,13 +12,13 @@ This package provides data access via ACIS web services (http://www.rcc-acis.org
 + Formats outputs consistently:
 
   * Limits alteration to data returned from ACIS web services
-  * Returns data frames or spatially referenced raster stacks
+  * Returns data frames, CSV files, or spatially referenced raster stacks
   
 In addition, the package contains convenience functions for requesting Environmental Setting metrics, both the station-based metrics sourced from ACIS and the raster-based metrics sourced from 800m PRISM or climate indexes. 
 
 The Environmental Setting Toolkit is the next iteration of and was forked from the IM_Climate toolkit created in 2016-2017. That toolkit can be found here: (https://github.com/IMDProjects/IM_Climate)
 
-#### Draft Development Timeline
+#### Development Timeline
 
 	Version 2.0 - March 2018
 		Bug fixes
@@ -35,20 +35,29 @@ The Environmental Setting Toolkit is the next iteration of and was forked from t
 	  Performance enhancements for gridded metric generation
 	  
 	Version 2.1.2 - September 2018
-	  Bug fixes 
+	  Bug fixes
 
-	Version 2.2 - June 2018
+	Version 2.1.3 - May 2019
+	  Enhancements for FY2019 station metric generation
+	  
+	Version 2.1.4 - July 2019
+	  Enhancements for FY2019 gridded metric generation
+
+	Version 2.2 - October 2019
 	  Mirror capabilities for Python version of Toolkit
 		Index-based metrics
 		Upload polygon
 		
-	Version 2.3 - August 2018
+	Version 2.3 - November 2019
 		Generic capabilities: add DayMet/NASA NEX as sources 
+
+#### Release 2.1.3 - 20190508 #### 
+[Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.3)
+Enhancements to run count and departure metrics.  Addition of daily flag data requests. Updates to station response. Implemented testing framework.
 
 #### Release 2.1.2 - 20180924 #### 
 [Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.2)
 Bug fixes for getStationMetrics() function.  For protocol metric examples, see the two RMarkdown-produced PDFs: ES_StationMetricExamples.pdf and ES_GriddedMetricExamples.pdf.
-
 
 #### Release 2.1 - 20180531 ####
 [Release notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases)
