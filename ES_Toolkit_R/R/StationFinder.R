@@ -153,7 +153,7 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
       sid3_type <- setNames(as.data.frame(sid3_type),"sid3_type")
       i <- NULL
       for (i in 1:length(stationListInit$meta$sids)) {
-        if (!is.null(unlist(stationListInit$meta$valid_daterange[i]))) {
+        if (!is.null(unlist(stationListInit$meta$valid_daterange[i])) & length(as.data.frame(stationListInit$meta$valid_daterange[i])) > 0) {
           minDate[i] <- as.Date(range(unlist(stationListInit$meta$valid_daterange[i]))[1], "%Y-%m-%d")
           maxDate[i] <- as.Date(range(unlist(stationListInit$meta$valid_daterange[i]))[2], "%Y-%m-%d")
         }
@@ -161,7 +161,9 @@ findStation <- function (unitCode, distance=NULL, climateParameters=NULL, filePa
           minDate[i] <- NA
           maxDate[i] <- NA
         }
-      }
+        }
+      
+
       minDate <-  setNames(as.data.frame(minDate), "minDate")
       maxDate <-  setNames(as.data.frame(maxDate), "maxDate")
       # Detect U.S. Historical Climate Network stations using the first station identifier
