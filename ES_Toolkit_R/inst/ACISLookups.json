@@ -109,7 +109,9 @@
 		"subtypes":
 			{"USC":"COOP",
 			 "USR":"RAWS",
-			 "USS":"SNOTEL"}
+			 "USS":"SNOTEL",
+			 "USW":"Primary"
+			}
 	}, {
 		"code": "7",
 		"description": "NWSLI",
@@ -128,6 +130,10 @@
 		"subtypes":""
 	}, {
 		"code": "12",
+		"description": "Unknown",
+		"subtypes": ""
+	}, {
+		"code": "17",
 		"description": "Unknown",
 		"subtypes": ""
 	}],
