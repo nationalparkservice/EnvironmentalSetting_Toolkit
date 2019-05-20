@@ -4,7 +4,8 @@
 \alias{getProtocolStations}
 \title{getProtocolStations}
 \usage{
-getProtocolStations(dbInstance, dbName, dbTable)
+getProtocolStations(dbInstance, dbName, dbTable,
+  withPeriodOfRecord = FALSE)
 }
 \arguments{
 \item{dbInstance}{database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)}
@@ -12,9 +13,11 @@ getProtocolStations(dbInstance, dbName, dbTable)
 \item{dbName}{database name}
 
 \item{dbTable}{table name containing monitoring locations}
+
+\item{withPeriodOfRecord}{boolean indicating if period of record by climate parameter is returned; default is FALSE}
 }
 \value{
-A list of station UIDs
+A list of station UIDs or a list with station UIDs, climate parameter(s), and periods of record
 }
 \description{
 NPS Only: Function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol

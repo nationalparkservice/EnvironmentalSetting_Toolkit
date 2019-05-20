@@ -7,7 +7,7 @@
 getBBox(unitCode, expandBBox, bboxCustom = NULL)
 }
 \arguments{
-\item{unitCode}{unitCode One NPS or FWS unit code as a string}
+\item{unitCode}{unitCode One NPS or FWS unit code as a string; if matches unit service, will default to standard bounding box for unit, otherwise will use custom bounding box}
 
 \item{expandBBox}{buffer distance in decimal degrees (assumes WGS84)}
 
