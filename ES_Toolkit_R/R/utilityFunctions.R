@@ -1853,19 +1853,8 @@ getStationMetrics <-
     # }
     
     if (is.null(metric)) { # Output all metrics
-      # Accommodates ACIS' differential handling of 'por' for departure metrics
-      if(length(names(climateStations)) > 1) { #list with multiple columns (for departure metrics)
-        stationSetDepart <- climateStations
-        stationSet <- unique(climateStations$uid)
-      }
-      else if(length(names(climateStations)) == 0) { #unnamed list of uid values
-        stationSet <- unique(climateStations)
-      }
-      else { #list with 1 named column
-        stationSet <- unique(climateStations[[1]])
-      }
       # Get CST1: Hot Days (annual count)
-      CST1 <- sapply(stationSet, function(x) {
+      CST1 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("maxt"),
@@ -1882,7 +1871,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CST2: Cold Days (annual count)
-      CST2 <- sapply(stationSet, function(x) {
+      CST2 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("maxt"),
@@ -1899,7 +1888,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CST3: Sub-freezing Days (annual count)
-      CST3 <- sapply(stationSet, function(x) {
+      CST3 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("mint"),
@@ -1916,7 +1905,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CST4: Days at or below 0 (annual count)
-      CST4 <- sapply(stationSet, function(x) {
+      CST4 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("mint"),
@@ -1933,7 +1922,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CST5: Growing degree days (base temperature >= 50) (annual count)
-      CST5 <- sapply(stationSet, function(x) {
+      CST5 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("gdd"),
@@ -1950,7 +1939,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CST6: Heating degree days (default base temperature >= 65) (annual count)
-      CST6 <- sapply(stationSet, function(x) {
+      CST6 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("hdd"),
@@ -1967,7 +1956,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CST7: Cooling degree days (default base temperature >= 65) (annual count)
-      CST7 <- sapply(stationSet, function(x) {
+      CST7 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("cdd"),
@@ -1984,25 +1973,9 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CST 8 and 9: Above and Below Normal Temperature Days
-      if(length(stationSetDepart[[1]]) == 1 && length(names(stationSetDepart)) > 1) {
-        #single station with multiple columns 
-        CST8and9 <- sapply(stationSetDepart$uid, function(x) {
-          getWxObservations(
-            climateStations = x,
-            climateParameters = cParam,
-            sdate = stationSetDepart[stationSetDepart$uid == x]$minDate,
-            #sdate,
-            edate = edate,
-            duration = "dly",
-            interval = "dly",
-            normal = "departure",
-            maxMissing = 10,
-            metric = metric
-          )
-        })
-      }
-      else if(length(names(stationSetDepart)) == 0) { #only uid values; assumes sdate is not "por"
-        CST8and9 <- sapply(stationSetDepart, function(x) {
+      if (length(names(climateStations)) == 0 && sdate != "por") {
+        #only uid values; assumes sdate is not "por"
+        CST8and9 <- sapply(climateStations, function(x) {
           getWxObservations(
             climateStations = x,
             climateParameters = cParam,
@@ -2015,33 +1988,20 @@ getStationMetrics <-
             metric = metric
           )
         })
-      }
-      else {
-        CST8and9 <- sapply(stationSetDepart$uid, function(x) { #multiple stations with multiple columns
-          getWxObservations(
-            climateStations = x,
-            climateParameters = cParam,
-            sdate = stationSetDepart[stationSetDepart$uid == x,]$minDate,#sdate,
-            edate = edate,
-            duration = "dly",
-            interval = "dly",
-            normal = "departure",
-            maxMissing = 10,
-            metric = metric
-          )
-        })}
-      CST8and9Source <- cleanNestedList(CST8and9)
-      if(typeof(CST8and9Source) == "list") {
-        CST8and9Data <-
-          getDepartureCounts(rawDepartures = CST8and9Source,
-                             duration = "yly",
-                             metric = "CST8and9")
-        outputMetricFile(CST8and9Data, "CST8and9",
-                         filePathAndRootname)
+        
+        CST8and9Source <- cleanNestedList(CST8and9)
+        if (typeof(CST8and9Source) == "list") {
+          CST8and9Data <-
+            getDepartureCounts(rawDepartures = CST8and9Source,
+                               duration = "yly",
+                               metric = "CST8and9")
+          outputMetricFile(CST8and9Data, "CST8and9",
+                           filePathAndRootname)
+        }
       }
       
       # Get CSP1: Heavy precip days
-      CSP1 <- sapply(stationSet, function(x) {
+      CSP1 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("pcpn"),
@@ -2058,7 +2018,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       #Get CSP2: Extreme precip days
-      CSP2 <- sapply(stationSet, function(x) {
+      CSP2 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("pcpn"),
@@ -2077,7 +2037,7 @@ getStationMetrics <-
       # Get CSP3: Micro-drought
       CSP3Source <- 
         getWxObservations(
-          climateStations = stationSet,
+          climateStations = climateStations,
           climateParameters = list("pcpn"),
           sdate = sdate,
           edate = edate,
@@ -2104,7 +2064,7 @@ getStationMetrics <-
       }
       
       # Get CSP4: Measurable snow days
-      CSP4 <- sapply(stationSet, function(x) {
+      CSP4 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("snow"),
@@ -2121,7 +2081,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CSP5: Moderate snow days
-      CSP5 <- sapply(stationSet, function(x) {
+      CSP5 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("snow"),
@@ -2138,7 +2098,7 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CSP6: Heavy snow days
-      CSP6 <- sapply(stationSet, function(x) {
+      CSP6 <- sapply(climateStations, function(x) {
         getWxObservations(
           climateStations = x,
           climateParameters = list("snow"),
@@ -2155,25 +2115,9 @@ getStationMetrics <-
                        filePathAndRootname)
       
       # Get CSP 7 and 8: Above and Below Normal Precipitation Days
-      if(length(stationSetDepart[[1]]) == 1 && length(names(stationSetDepart)) > 1) {
-        #single station with multiple columns 
-        CSP7and8 <- sapply(stationSetDepart$uid, function(x) {
-          getWxObservations(
-            climateStations = x,
-            climateParameters = list("pcpn"),
-            sdate = stationSetDepart[stationSetDepart$uid == x]$minDate,
-            #sdate,
-            edate = edate,
-            duration = "dly",
-            interval = "dly",
-            normal = "departure",
-            maxMissing = 10,
-            metric = metric
-          )
-        })
-      }
-      else if(length(names(stationSetDepart)) == 0) { #only uid values; assumes sdate is not "por"
-        CSP7and8 <- sapply(stationSetDepart, function(x) {
+      if (length(names(climateStations)) == 0 && sdate != "por") {
+        #only uid values; assumes sdate is not "por"
+        CSP7and8 <- sapply(climateStations, function(x) {
           getWxObservations(
             climateStations = x,
             climateParameters = list("pcpn"),
@@ -2185,31 +2129,17 @@ getStationMetrics <-
             metric = metric
           )
         })
+        
+        CSP7and8Source <- cleanNestedList(CSP7and8)
+        if (typeof(CSP7and8Source) == "list") {
+          CSP7and8Data <-
+            getDepartureCounts(rawDepartures = CSP7and8Source,
+                               duration = "yly",
+                               metric = "CSP7and8")
+          outputMetricFile(CSP7and8Data, "CSP7and8",
+                           filePathAndRootname)
+        }
       }
-      else {
-        CSP7and8 <- sapply(stationSetDepart$uid, function(x) { #multiple stations with multiple columns
-          getWxObservations(
-            climateStations = x,
-            climateParameters = list("pcpn"),
-            sdate = stationSetDepart[stationSetDepart$uid == x,]$minDate,#sdate,
-            edate = edate,
-            duration = "dly",
-            interval = "dly",
-            normal = "departure",
-            maxMissing = 10,
-            metric = metric
-          )
-        })}
-      CSP7and8Source <- cleanNestedList(CSP7and8)
-      if(typeof(CSP7and8Source) == "list") {
-        CSP7and8Data <-
-          getDepartureCounts(rawDepartures = CSP7and8Source,
-                             duration = "yly",
-                             metric = "CSP7and8")
-        outputMetricFile(CSP7and8Data, "CSP7and8",
-                         filePathAndRootname)
-      }
-      
       return("SUCCESS")
     }
     else { # Single metric
@@ -2260,6 +2190,10 @@ getStationMetrics <-
         duration <- "dly"
         interval <- "dly"
         cParam <-  list("avgt")
+        src0 <-  as.data.frame(stationSetDepart)
+        src <- src0[src0$climateParameter == 'avgt', ]
+        
+        sts <- unique(src$uid)
       }
       else if (metric == "CSP1" || metric == "CSP2" || metric == "CSP3") {
         cParam <- list("pcpn")
@@ -2287,6 +2221,10 @@ getStationMetrics <-
         duration <- "dly"
         interval <- "dly"
         cParam <-  list("pcpn")
+        src0 <-  as.data.frame(stationSetDepart)
+        src <- src0[src0$climateParameter == 'pcpn', ]
+        
+        sts <- unique(src$uid)
       }
       
       # Request station data
@@ -2373,28 +2311,21 @@ getStationMetrics <-
         }
         else {
           #multiple stations with multiple columns
-          src0 <-  as.data.frame(stationSetDepart)
-          if(metric == "CST8and9") {
-            src <- src0[src0$climateParameter == 'avgt', ]
-          }
-          else {
-            src <- src0[src0$climateParameter == 'pcpn', ]
-          }
-          sts <- unique(src$uid)
-          
-        metricSource <- sapply(sts, function(x) { 
-          getWxObservations(
-            climateStations = x,
-            climateParameters = cParam,
-            sdate = src[src$uid == x,]$minDate,#sdate,
-            edate = edate,
-            duration = duration,
-            interval = interval,
-            normal = "departure",
-            maxMissing = 10,
-            metric = metric
-          )
-        })}
+          metricSource <- sapply(sts, function(x) {
+            getWxObservations(
+              climateStations = x,
+              climateParameters = cParam,
+              sdate = src[src$uid == x, ]$minDate,
+              #sdate,
+              edate = edate,
+              duration = duration,
+              interval = interval,
+              normal = "departure",
+              maxMissing = 10,
+              metric = metric
+            )
+          })
+        }
         metricData0 <- cleanNestedList(metricSource)
         if (typeof(metricData0) == "list") {
           duration = "yly"
@@ -2491,7 +2422,7 @@ cleanNestedList <- function(l) {
 #' @export
 #' 
 outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
-  outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_METRIC.csv"), sep = "")
+  outFile <- paste(gsub("METRIC",metricName,filePathAndRootName),".csv", sep = "")
   write.table(
     metricData,
     file = outFile,
@@ -2509,7 +2440,7 @@ outputMetricFile <- function(metricData, metricName, filePathAndRootName) {
 #' @export
 #' 
 outputDetailFile <- function(metricData, metricName, filePathAndRootName) {
-  outFile <- paste(filePathAndRootName,gsub("METRIC",metricName,"_DETAIL.csv"), sep = "")
+  outFile <- paste(gsub("METRIC",metricName,filePathAndRootName),"_DETAIL.csv", sep = "")
   write.table(
     metricData,
     file = outFile,
