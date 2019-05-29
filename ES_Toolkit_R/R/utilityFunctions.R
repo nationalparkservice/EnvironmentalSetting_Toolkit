@@ -1680,6 +1680,15 @@ getRunCounts <-
       }
       toCount <- NULL
     }
+    # Remove extraneous rows introduced from run requests
+    if(length(idArray[(idArray %in% 0)]) > 0) {
+      deleteCount <- length(idArray[(idArray %in% 0)])
+      idArray <- idArray[1:(rowCount - deleteCount)]
+      nArray <- nArray[1:(rowCount - deleteCount)]
+      dArray <- dArray[1:(rowCount - deleteCount)]
+      cArray <- cArray[1:(rowCount - deleteCount)]
+      metricArray <- metricArray[1:(rowCount - deleteCount)]
+    }
     dfResponse0 <- cbind(idArray, nArray, dArray, as.numeric(cArray), metricArray)
     dfResponse <- as.data.frame(dfResponse0)
     cntName <- paste("cntGERunLength",runLength, sep = "_")
@@ -1728,9 +1737,9 @@ getRunDetails <-
     metricArray <- NULL
     
     # Get date vector from rawCounts
-    dates <- as.Date(rawCounts$date, "%Y")
-    countDuration <- unique(format(dates, "%Y"))
-    yearCount <- length(countDuration)
+    #dates <- as.Date(rawCounts$date, "%Y")
+    #countDuration <- unique(format(dates, "%Y"))
+    #yearCount <- length(countDuration)
     stationCount <- length(unique(rawCounts$uid))
     
     idArray <- vector(mode = "integer")
@@ -1744,45 +1753,48 @@ getRunDetails <-
     for (i in 1:length(unique(rawCounts$uid))) {
       # Get data for each station for year
       #print(unique(toCount$uid)[j])
-      byStation <-
-        subset(rawCounts, uid == unique(rawCounts$uid)[i])
-      #byStation0 <- subset(rawCounts, uid == unique(rawCounts$uid)[i])
-      #byStation <- byStation0[with(byStation0, order(date)), ]
-      for (j in 1:length(byStation$uid)) {
-        # Count total greater than or equal to runLength
-        
-        # Missing/NA element
-        if (is.null(byStation$pcpn_in_run) ||
-            is.null(byStation$pcpn_in_run[j][[1]][, 1])) {
-          runDetails <- NA
-        }
-        else if (is.na(byStation$pcpn_in_run) ||
-                 is.na(byStation$pcpn_in_run[j][[1]][, 1])) {
-          runDetails <- NA
-        }
-        # Run element(s) exist
-        else if (length(byStation$pcpn_in_run[j][[1]][, 1]) > 1) {
-          runDays <-
-            byStation$pcpn_in_run[j][[1]][, 1][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
-          runEndDates <-
-            byStation$pcpn_in_run[j][[1]][, 2][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
-          for (k in 1:length(runDays)) {
-            idArray[k] <- byStation$uid[j]
-            nArray[k] <- byStation$name[j]
-            dArray[k] <- byStation$date[j]
-            rArray[k] <- runDays[k]
-            rdArray[k] <- runEndDates[k]
-            metricArray[k] <- metric
+      if(!is.na(rawCounts$uid[i])) {
+        byStation <-
+          subset(rawCounts, uid == unique(rawCounts$uid)[i])
+        #byStation0 <- subset(rawCounts, uid == unique(rawCounts$uid)[i])
+        #byStation <- byStation0[with(byStation0, order(date)), ]
+        for (j in 1:length(byStation$uid)) {
+          # Count total greater than or equal to runLength
+          #print(paste(byStation$uid[j], length(byStation$pcpn_in_run[j][[1]]), sep=": "))
+          # if(!byStation$uid[j] == 0) {
+          # Missing/NA element
+          if (is.null(byStation$pcpn_in_run) ||
+              is.null(byStation$pcpn_in_run[j][[1]][, 1])) {
+            runDetails <- NA
           }
-          dfResponse0 <-
-            cbind(idArray,
-                  nArray,
-                  dArray,
-                  as.numeric(rArray),
-                  rdArray,
-                  metricArray)
+          else if (is.na(byStation$pcpn_in_run) ||
+                   is.na(byStation$pcpn_in_run[j][[1]][, 1])) {
+            runDetails <- NA
+          }
+          # Run element(s) exist
+          else if (length(byStation$pcpn_in_run[j][[1]][, 1]) > 1) {
+            runDays <-
+              byStation$pcpn_in_run[j][[1]][, 1][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
+            runEndDates <-
+              byStation$pcpn_in_run[j][[1]][, 2][as.numeric(byStation$pcpn_in_run[j][[1]][, 1]) >= runLength]
+            for (k in 1:length(runDays)) {
+              idArray[k] <- byStation$uid[j]
+              nArray[k] <- byStation$name[j]
+              dArray[k] <- byStation$date[j]
+              rArray[k] <- runDays[k]
+              rdArray[k] <- runEndDates[k]
+              metricArray[k] <- metric
+            }
+            dfResponse0 <-
+              cbind(idArray,
+                    nArray,
+                    dArray,
+                    as.numeric(rArray),
+                    rdArray,
+                    metricArray)
+          }
+          df <- rbind(df, dfResponse0)
         }
-        df <- rbind(df, dfResponse0)
       }
     }
     
