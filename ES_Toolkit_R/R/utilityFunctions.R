@@ -627,17 +627,21 @@ formatWxObservations  <- function(rList, duration, climateParameters, reduceCode
 #' 
 #' @import jsonlite httr 
 #' @importFrom stats setNames
-#' @param rList list of response arrays containing name/value pairs: meta (default), data (date, values) 
+#' @param rListInit list of response arrays containing name/value pairs: meta (default), data (date, values) 
 #' @param duration station data duration specified in calling source 
 #' @param climateParameters A list of one or more climate parameters defined in calling source
 #' @param luElements lookup values defined in calling source
 #' @export
 #'
-formatWxObservationsDailyFlags  <- function(rList, duration, climateParameters, luElements) {
+formatWxObservationsDailyFlags  <- function(rListInit, duration, climateParameters, luElements) {
   # Initialize return object (table or dataFrame)
   df <- NULL
   dfResponse <- NULL
   options(stringsAsFactors = FALSE)
+  
+  # Extra check for empty input
+  if (length(rListInit) > 0) {
+    rList <- rListInit
   
   dfDate <-
     as.data.frame(cbind(unlist(lapply(
@@ -859,7 +863,6 @@ formatWxObservationsDailyFlags  <- function(rList, duration, climateParameters, 
       
     }
   }
-  
   # Convert factors and booleans to character vectors
   fc  <- sapply(df, is.factor)
   lc <- sapply(df, is.logical)
@@ -872,6 +875,7 @@ formatWxObservationsDailyFlags  <- function(rList, duration, climateParameters, 
   }
   else {
     dfResponse <- df
+  }
   }
   options(stringsAsFactors = TRUE)
   return(dfResponse)
@@ -1763,12 +1767,21 @@ getRunDetails <-
           #print(paste(byStation$uid[j], length(byStation$pcpn_in_run[j][[1]]), sep=": "))
           # if(!byStation$uid[j] == 0) {
           # Missing/NA element
-          if (is.null(byStation$pcpn_in_run) ||
-              is.null(byStation$pcpn_in_run[j][[1]][, 1])) {
+          # if (is.null(byStation$pcpn_in_run) ||
+          #     is.null(byStation$pcpn_in_run[j][[1]][, 1])) {
+          #   runDetails <- NA
+          # }
+          # else if (is.na(byStation$pcpn_in_run) ||
+          #          is.na(byStation$pcpn_in_run[j][[1]][, 1])) {
+          #   runDetails <- NA
+          # }
+          if (is.null(byStation$pcpn_in_run)) {
             runDetails <- NA
           }
-          else if (is.na(byStation$pcpn_in_run) ||
-                   is.na(byStation$pcpn_in_run[j][[1]][, 1])) {
+          else if (is.na(byStation$pcpn_in_run)) {
+            runDetails <- NA
+          }
+          else if (length(byStation$pcpn_in_run[j][[1]]) <= 1) {
             runDetails <- NA
           }
           # Run element(s) exist

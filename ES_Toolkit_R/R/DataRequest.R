@@ -268,10 +268,13 @@ getWxObservationsDailyFlags <-
       ) # assumes placement in package inst subfolder
     luElements  <- lookups$element
     
-    climateParameters0 <- lookups$element$code
-    climateParameters <-
-      climateParameters0[climateParameters0 %in% "obst" == FALSE] # remove obst
-    #climateParameters <- list(''mint', 'maxt', 'avgt', pcpn', 'snow', 'snwd', 'gdd', 'cdd', 'hdd')
+    if(is.null(climateParameters)) {
+      climateParameters0 <- lookups$element$code
+      climateParameters <-
+        climateParameters0[(climateParameters0 %in% "obst" == FALSE) & (climateParameters0 %in% "snwd" == FALSE) & (climateParameters0 %in% "cdd" == FALSE) & (climateParameters0 %in% "hdd" == FALSE)] # remove obst, snwd, cdd, hdd
+      #climateParameters <- list(''mint', 'maxt', 'avgt', pcpn', 'snow', 'snwd', 'gdd', 'cdd', 'hdd')
+    }
+    #print(climateParameters)
     
     # Initialize response object
     dfResponse <- NULL
@@ -299,7 +302,7 @@ getWxObservationsDailyFlags <-
           formatRequest(
             requestType = "getWxObservations",
             climateParameters = x,
-            "POR",
+            sdate, #"POR",
             edate,
             cUid,
             duration = duration,
@@ -324,7 +327,15 @@ getWxObservationsDailyFlags <-
         }
         else {
           # Format climate data object
-          rList <- content(dataResponseInit)
+          # Remove no data elements 
+          rListInit <- content(dataResponseInit)
+          if (any(tolower(rListInit) == "no data available")) {
+            rList <- rListInit[tolower(rListInit) != "no data available"]
+          }
+          else {
+            rList <- rListInit
+          }
+          #rList <- content(dataResponseInit)
           dataResponseError <- rList$error
           if (is.null(dataResponseError)) {
             df <-
@@ -347,47 +358,52 @@ getWxObservationsDailyFlags <-
           }
         }
         # Output file
-        if (!is.null(filePathAndName)) {
-          if (grepl(filePathAndName, "<eyear>")) {
-            fName <-
-              gsub("<eyear>",
-                   format(as.Date(edate, format = "%Y-%m-%d"), "%Y"),
-                   gsub(
-                     "<StationUID>",
-                     cUid,
-                     gsub("<runDate>",
-                          format(Sys.Date(), "%Y%m%d"),
-                          filePathAndName)
-                   ))
-          }
-          else fName <- filePathAndName
-          if (!file.exists(fName)) {
-            write.table(
-              dfResponse,
-              file = fName,
-              append = TRUE,
-              sep = ",",
-              row.names = FALSE,
-              qmethod = "double"
-            )
+        if(!is.null(dfResponse)) {
+          if (!is.null(filePathAndName)) {
+            if (grepl("<eyear>", filePathAndName)) {
+              fName <-
+                gsub("<eyear>",
+                     format(as.Date(edate, format = "%Y-%m-%d"), "%Y"),
+                     gsub(
+                       "<StationUID>",
+                       cUid,
+                       gsub(
+                         "<runDate>",
+                         format(Sys.Date(), "%Y%m%d"),
+                         filePathAndName
+                       )
+                     ))
+            }
+            else
+              fName <- filePathAndName
+            if (!file.exists(fName)) {
+              write.table(
+                dfResponse,
+                file = fName,
+                append = TRUE,
+                sep = ",",
+                row.names = FALSE,
+                qmethod = "double"
+              )
+            }
+            else {
+              write.table(
+                dfResponse,
+                file = fName,
+                append = TRUE,
+                sep = ",",
+                row.names = FALSE,
+                col.names = FALSE,
+                qmethod = "double"
+              )
+            }
           }
           else {
-            write.table(
-              dfResponse,
-              file = fName,
-              append = TRUE,
-              sep = ",",
-              row.names = FALSE,
-              col.names = FALSE,
-              qmethod = "double"
-            )
+            return ("ERROR: Please supply a file path and name for the output CSV file.")
           }
-        }
-        else {
-          return ("ERROR: Please supply a file path and name for the output CSV file.")
         }
       }) # end lapply climateParameters
     }
-    return ("INFO: Function getWxObservationsDailyFlags() finished.")
+    return ("INFO: Function getWxObservationsDailyFlags() finished. If no CSV was created, please supply a file path and name for the output CSV file.")
   }
     
