@@ -37,7 +37,7 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 		Generic capabilities: add DayMet/NASA NEX as sources
 
 
-#### Release 2.1.3 - 20190508 #### 
+#### Release 2.1.3 - 20190530 #### 
 [Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.3)
 Enhancements to run count and departure metrics.  Addition of daily flag data requests. Updates to station response. Implemented testing framework.
 

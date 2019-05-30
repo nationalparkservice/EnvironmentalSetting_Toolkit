@@ -1,7 +1,7 @@
 ---
 title: "Environmental Setting Protocol - Example Station Metrics"
 author: "Lisa Nelson, NPS Inventory and Monitoring Division"
-date: "May 31, 2018"
+date: "May 30, 2019"
 output:
   pdf_document: 
     keep_tex: yes
@@ -55,14 +55,6 @@ The draft Environmental Setting protocol calculates four types of climate metric
 
 The first two metric types are calculated for all stations that intersect the 30km areas of analysis for parks while the latter two metric types are calculated by area of analysis (AOA) bounding box extent. This notebook shows the first two metric types for stations around Agate Fossil Beds NM (AGFO). The climate stations and observation data for areas around and within National Parks are obtained from webservices maintained by NOAA's Regional Climate Centers (RCCs) from a system called ACIS - Applied Climate Information System (<http://www.rcc-acis.org/index.html>).
 
-Environmental Setting protocol metrics are shown below.
-
-
-```{r results = "asis", echo=FALSE}
-metrics <- read.csv("inst/ESParameters.csv")[ ,1:2]
-
-knitr::kable(metrics, type = "html")
-```
 
 For formal metric requests for the protocol, the *getStationMetrics()* convenience function is used. To demonstrate metric request capability, this notebook shows direct calls to the *getWxObservations()* function which is called by the convenience function. The *getWxObservations()* function faciliates access to most ACIS parameters, not just those used for Environmental Setting metrics.  Similarly, the *findStation()* function requests in this notebook demonstrate the generic park-based station location capability rather than the station-AOA intersection approach. This function also accepts custom bounding boxes.
 
