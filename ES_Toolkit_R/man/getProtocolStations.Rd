@@ -4,12 +4,9 @@
 \alias{getProtocolStations}
 \title{getProtocolStations}
 \usage{
-getProtocolStations(dbInstance, dbName, dbTable,
-  withPeriodOfRecord = FALSE)
+getProtocolStations(dbName, dbTable, withPeriodOfRecord = FALSE)
 }
 \arguments{
-\item{dbInstance}{database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)}
-
 \item{dbName}{database name}
 
 \item{dbTable}{table name containing monitoring locations}

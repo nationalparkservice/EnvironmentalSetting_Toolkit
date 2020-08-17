@@ -4,10 +4,20 @@
 \alias{formatRequest}
 \title{formatRequest generates the JSON-formatted request to send to ACIS}
 \usage{
-formatRequest(requestType, climateParameters, sdate, edate, cUid = NULL,
-  duration = NULL, interval = NULL, paramFlags = NULL,
-  reduceList = NULL, maxMissing = NULL, normal = NULL,
-  gridElements = NULL)
+formatRequest(
+  requestType,
+  climateParameters,
+  sdate,
+  edate,
+  cUid = NULL,
+  duration = NULL,
+  interval = NULL,
+  paramFlags = NULL,
+  reduceList = NULL,
+  maxMissing = NULL,
+  normal = NULL,
+  gridElements = NULL
+)
 }
 \arguments{
 \item{requestType}{type of request: getDailyWxObservations, getMonthlyWxObservations, getGrids, (findStation)}

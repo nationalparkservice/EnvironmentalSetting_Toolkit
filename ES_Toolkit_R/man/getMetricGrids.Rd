@@ -4,8 +4,15 @@
 \alias{getMetricGrids}
 \title{getMetricGrids}
 \usage{
-getMetricGrids(featurePolygon, metric, unitCode, sdate = NULL,
-  edate = NULL, outputNormals = FALSE, filePath = NULL)
+getMetricGrids(
+  featurePolygon,
+  metric,
+  unitCode,
+  sdate = NULL,
+  edate = NULL,
+  outputNormals = FALSE,
+  filePath = NULL
+)
 }
 \arguments{
 \item{featurePolygon}{SpatialPolygon object; for area of analysis, use getAOAFeature()}

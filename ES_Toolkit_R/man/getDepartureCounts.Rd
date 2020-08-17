@@ -4,8 +4,12 @@
 \alias{getDepartureCounts}
 \title{getDepartureCounts}
 \usage{
-getDepartureCounts(rawDepartures, duration = "yly", metric = NULL,
-  filePathAndName = NULL)
+getDepartureCounts(
+  rawDepartures,
+  duration = "yly",
+  metric = NULL,
+  filePathAndName = NULL
+)
 }
 \arguments{
 \item{rawDepartures}{Daily departures for a climate parameter (use getWxObservations() with normal="departure" to generate)}

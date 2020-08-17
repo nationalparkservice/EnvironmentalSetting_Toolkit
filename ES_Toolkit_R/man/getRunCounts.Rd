@@ -4,8 +4,7 @@
 \alias{getRunCounts}
 \title{getRunCounts}
 \usage{
-getRunCounts(rawCounts, runLength, metric = NULL,
-  filePathAndName = NULL)
+getRunCounts(rawCounts, runLength, metric = NULL, filePathAndName = NULL)
 }
 \arguments{
 \item{rawCounts}{run counts for a climate parameter (use getWxObservations() with a reduce code of 'run*' to generate)}

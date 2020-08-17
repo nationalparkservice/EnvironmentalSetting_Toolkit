@@ -4,8 +4,15 @@
 \alias{formatWxObservations}
 \title{formatWxObservations converts get*WxObservation response to a data frame, iterating by date and value}
 \usage{
-formatWxObservations(rList, duration, climateParameters, reduceCodes,
-  luElements, normal, metric)
+formatWxObservations(
+  rList,
+  duration,
+  climateParameters,
+  reduceCodes,
+  luElements,
+  normal,
+  metric
+)
 }
 \arguments{
 \item{rList}{list of response arrays containing name/value pairs: meta (default), data (date, values)}

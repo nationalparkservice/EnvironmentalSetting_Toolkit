@@ -4,8 +4,13 @@
 \alias{getStationMetrics}
 \title{getStationMetrics}
 \usage{
-getStationMetrics(climateStations, sdate = "por", edate = "por",
-  filePathAndRootname, metric = NULL)
+getStationMetrics(
+  climateStations,
+  sdate = "por",
+  edate = "por",
+  filePathAndRootname,
+  metric = NULL
+)
 }
 \arguments{
 \item{climateStations}{A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.}

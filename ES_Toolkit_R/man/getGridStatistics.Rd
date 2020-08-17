@@ -4,8 +4,7 @@
 \alias{getGridStatistics}
 \title{getGridStatistics}
 \usage{
-getGridStatistics(rasStack, metric = NULL, unitCode = NULL,
-  filePath = NULL)
+getGridStatistics(rasStack, metric = NULL, unitCode = NULL, filePath = NULL)
 }
 \arguments{
 \item{rasStack}{(required) RasterStack object}

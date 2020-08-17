@@ -4,10 +4,19 @@
 \alias{getWxObservations}
 \title{Get station data for specified parameter(s) and station(s)}
 \usage{
-getWxObservations(climateStations, climateParameters = NULL,
-  sdate = "por", edate = "por", duration = "dly", interval = "dly",
-  reduceCodes = NULL, maxMissing = NULL, filePathAndName = NULL,
-  normal = NULL, metric = NULL)
+getWxObservations(
+  climateStations,
+  climateParameters = NULL,
+  sdate = "por",
+  edate = "por",
+  duration = "dly",
+  interval = "dly",
+  reduceCodes = NULL,
+  maxMissing = NULL,
+  filePathAndName = NULL,
+  normal = NULL,
+  metric = NULL
+)
 }
 \arguments{
 \item{climateStations}{A list of one or more unique identifiers (uid) for climate stations. Can be a single item, a list of items, or a data frame of the findStation response.}

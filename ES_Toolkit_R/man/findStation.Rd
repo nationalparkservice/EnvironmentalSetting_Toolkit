@@ -4,8 +4,13 @@
 \alias{findStation}
 \title{Find stations near a park}
 \usage{
-findStation(unitCode, distance = NULL, climateParameters = NULL,
-  filePathAndName = NULL, customBBox = NULL)
+findStation(
+  unitCode,
+  distance = NULL,
+  climateParameters = NULL,
+  filePathAndName = NULL,
+  customBBox = NULL
+)
 }
 \arguments{
 \item{unitCode}{One NPS unit code as a string}
