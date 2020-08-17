@@ -1051,7 +1051,7 @@ getAOAFeature <- function(unitCode, aoaExtent="km30") {
 #' 
 #' For the AOA, returns a raster stack containing metric layers (cropped, masked) and writes out a CSV file of metric raster statistics and PNG-formatted plots for metric, 
 #' cropped PRISM 800m source and, optionally, cropped 30 year normal rasters.
-#' @import jsonlite httr rgdal sp RODBC
+#' @import jsonlite httr rgdal sp
 #' @importFrom grDevices png dev.off
 #' @param featurePolygon SpatialPolygon object; for area of analysis, use getAOAFeature()
 #' @param metric (required) One climate metric from the IMD Environmental Setting protocol
@@ -1468,37 +1468,65 @@ getGridStatistics <- function(rasStack, metric=NULL, unitCode=NULL, filePath=NUL
   }
 }
 
+#' getInfo
+#'
+#' Retrieves station set from internal database
+#'
+#' @return A delimited string
+#' @export getProtocolStations
+#'
+getInfo <- function(msg="Enter the database instance, user name, and password separated by |: ") {
+  if (interactive() ) {
+    txt <- readline(msg)
+  } else {
+    cat(msg);
+    txt <- readLines("stdin",n=1);
+  }
+  return(txt)
+}
+
 
 #' getProtocolStations 
 #' 
 #' NPS Only: Function retrieves climate station monitoring locations used to request station-based metrics of the IMD Environmental Setting Protocol
-#' @import RODBC
-#' @param dbInstance database server and instance, for example INPNISCVDBNRSST\\\\IMDGIS (note double back slash)
+#' @import DBI
 #' @param dbName database name
 #' @param dbTable table name containing monitoring locations
 #' @param withPeriodOfRecord boolean indicating if period of record by climate parameter is returned; default is FALSE
 #' @return A list of station UIDs or a list with station UIDs, climate parameter(s), and periods of record
 #' @export getProtocolStations
 #'
-getProtocolStations <- function(dbInstance, dbName, dbTable, withPeriodOfRecord = FALSE) {
-  # Open database connection
-  #library(RODBC)
-  connString <- paste0("driver={SQL Server};server=",dbInstance,";database=",dbName,";uid=Report_Data_Reader;pwd=ReportDataUser")
-  dbConn <- odbcDriverConnect(connString)
+getProtocolStations <- function(dbName, dbTable, withPeriodOfRecord = FALSE) {
+  # Get connection information: 
+  uInput <- getInfo()
+  dbInstance <- strsplit(uInput, "\\|")[[1]][1]
+  dbUser <- strsplit(uInput, "\\|")[[1]][2]
+  dbPwd <- strsplit(uInput, "\\|")[[1]][3]
   
+  # Open database connection
+  connString <- paste0("Driver={SQL Server Native Client 11.0};SERVER=",dbInstance,";Database=",dbName,";Uid=",dbUser,";Pwd="dbPwd)
+  
+  dbConn  <- dbConnect(odbc::odbc(), 
+                       .connection_string = connString)
   # Get station list
   if(!withPeriodOfRecord) {
-    res <- sqlQuery(dbConn, paste0("select distinct uid from ",dbTable))
+    res <- dbSendQuery(dbConn, paste0("select distinct uid from ",dbTable))
   }
   else {
-    res <- sqlQuery(dbConn, paste0("select distinct uid, climateParameter, minDate, maxDate from ",dbTable), stringsAsFactors=FALSE)
+    res <- dbSendQuery(dbConn, paste0("select distinct uid, climateParameter, minDate, maxDate from ",dbTable), stringsAsFactors=FALSE)
   }
   
+  # Get response
+  resp  <- dbFetch(res)
+  
+  # Clear request
+  dbClearResult(res)
+  
   # Close connection
-  odbcClose(dbConn)
+  dbDisconnect(dbConn)
   
   # Return list
-  return(res)
+  return(resp)
 }
 
 #' getDepartureCounts 
