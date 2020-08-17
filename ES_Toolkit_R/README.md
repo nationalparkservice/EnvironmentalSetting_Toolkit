@@ -40,16 +40,23 @@ The Environmental Setting Toolkit is the next iteration of and was forked from t
 	Version 2.1.3 - May 2019
 	  Enhancements for FY2019 station metric generation
 
-	Version 2.1.4 - July 2019
+	Version 2.1.4 - August 2020
+	  Switch to DBI
+
+	Version 2.1.5 - Late 2020
 	  Enhancements for FY2019 gridded metric generation
 
-	Version 2.2 - October 2019
+	Version 2.2 - Unknown
 	  Mirror capabilities for Python version of Toolkit
 		Index-based metrics
 		Upload polygon
 
-	Version 2.3 - November 2019
+	Version 2.3 - Mid 2021
 		Generic capabilities: add DayMet/NASA NEX as sources 
+
+#### Release 2.1.4 - 20200817 #### 
+[Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.4)
+Switched database access to DBI.
 
 #### Release 2.1.3 - 20190530 #### 
 [Release Notes](https://github.com/nationalparkservice/EnvironmentalSetting_Toolkit/releases/tag/v2.1.3)
