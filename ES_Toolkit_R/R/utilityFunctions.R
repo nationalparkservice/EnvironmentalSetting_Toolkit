@@ -1504,7 +1504,7 @@ getProtocolStations <- function(dbName, dbTable, withPeriodOfRecord = FALSE) {
   dbPwd <- strsplit(uInput, "\\|")[[1]][3]
   
   # Open database connection
-  connString <- paste0("Driver={SQL Server Native Client 11.0};SERVER=",dbInstance,";Database=",dbName,";Uid=",dbUser,";Pwd="dbPwd)
+  connString <- paste0("Driver={SQL Server Native Client 11.0};SERVER=",dbInstance,";Database=",dbName,";Uid=",dbUser,";Pwd=",dbPwd)
   
   dbConn  <- dbConnect(odbc::odbc(), 
                        .connection_string = connString)
