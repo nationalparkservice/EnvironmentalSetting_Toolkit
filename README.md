@@ -28,7 +28,10 @@ The Environmental setting Toolkit is the next iteration of and was forked from t
 	Version 2.1.4 - August 2020
 	  Switch to DBI
 
-	Version 2.1.5 - Late 2020
+	Version 2.1.5 - August 2020
+	  Bug fix
+
+	Version 2.1.6 - Late 2020
 	  Enhancements for FY2019 gridded metric generation
 
 	Version 2.2 - Unknown

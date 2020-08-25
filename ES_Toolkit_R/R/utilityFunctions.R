@@ -924,7 +924,7 @@ getBBox <- function (unitCode, expandBBox, bboxCustom=NULL) {
     # NPS codes are alphabetic; FWS codes are alphanumeric
     if (grepl('^[A-Za-z]+$', unitCode) == TRUE) {
       bboxURLBase <-
-        "http://irmaservices.nps.gov/v2/rest/unit/CODE/geography?detail=envelope&dataformat=wkt&format=json"
+        "https://irmaservices.nps.gov/v2/rest/unit/CODE/geography?detail=envelope&dataformat=wkt&format=json"
     }
     else {
       bboxURLBase <-
